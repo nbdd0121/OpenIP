@@ -24,8 +24,10 @@
  * DAMAGE.
  */
 
-// A general FIFO utility that accepts arbitary types and capacity. PASS_THROUGH can be set to 1 to allow zero cycle
-// latency between push and pop when FIFO is empty.
+// A general FIFO utility that accepts arbitary types and capacity.
+// The interface is defined with handshaking signals instead of traditional empty and full, but you can still use
+// !w_ready as full and !r_valid as empty.
+// PASS_THROUGH can be set to 1 to allow zero cycle latency between push and pop when FIFO is empty.
 module fifo #(
     parameter type TYPE = logic,
     parameter CAPACITY = 1,
@@ -60,7 +62,7 @@ module fifo #(
             logic full, full_next;
 
             // We cannot accept more writes when full. When empty, we can still accept read if there is a valid write.
-            assign w_ready = !full || (PASS_THROUGH && r_ready);
+            assign w_ready = !full;
             assign r_valid = !empty || (PASS_THROUGH && w_valid);
 
             // Function to calculate the next locaiton of a ring buffer pointer
@@ -73,15 +75,16 @@ module fifo #(
                 // Default assignments
                 readptr_next = readptr;
                 writeptr_next = writeptr;
-                empty_next = empty;
-                full_next = full;
-                r_data = buffer[readptr];
+                empty_next = 1'b0;
+                full_next = 1'b0;
 
-                // Special cases when FIFO is empty and both sides are reading/writing data. In this case the data is
-                // passed through from write to read channel and read/write to buffer does not happen, provided that
-                // PASS_THROUGH parameter is enabled.
+                // Special cases when FIFO is empty and PASS_THROUGH is enabled. In this case we simply connect two
+                // sides together.
+                r_data = (PASS_THROUGH && empty) ? w_data : buffer[readptr];
+
+                // If PASS_THROUGH is enabled and transaction happens, do not move pointers.
                 if (PASS_THROUGH && empty && r_ready && w_valid) begin
-                    r_data = w_data;
+                    empty_next = 1'b1;
                 end
                 else begin
                     // Adjust pointers according to handshake signals.
@@ -91,6 +94,8 @@ module fifo #(
                     // If pointers coincide, then determine the full/empty status by the firing transaction. Note that
                     // these checks can be disjoint as we can never read/write simulatenously when the buffer is full.
                     if (readptr_next == writeptr_next) begin
+                        empty_next = empty;
+                        full_next = full;
                         if (r_valid && r_ready) empty_next = 1'b1;
                         if (w_valid && w_ready) full_next = 1'b1;
                     end
@@ -120,29 +125,30 @@ module fifo #(
 
             TYPE buffer;
             // In this special case full and empty are always complements.
-            logic full, full_next;
-            assign w_ready = !full || (PASS_THROUGH && r_ready);
-            assign r_valid = full || (PASS_THROUGH && w_valid);
+            logic empty, empty_next;
+            assign w_ready = empty;
+            assign r_valid = !empty || (PASS_THROUGH && w_valid);
 
             // Compute next state
             always_comb begin
-                full_next = full;
-                r_data = buffer;
-                if (PASS_THROUGH && !full && r_ready && w_valid) begin
-                    r_data = w_data;
+                empty_next = 1'b0;
+                r_data = (PASS_THROUGH && empty) ? w_data : buffer;
+                if (PASS_THROUGH && empty && r_ready && w_valid) begin
+                    empty_next = 1'b1;
                 end
                 else begin
-                    if (r_valid && r_ready) full_next = 1'b0;
-                    if (w_valid && w_ready) full_next = 1'b1;
+                    empty_next = empty;
+                    if (r_valid && r_ready) empty_next = 1'b1;
+                    if (w_valid && w_ready) empty_next = 1'b0;
                 end
             end
 
             always_ff @(posedge clk or negedge rstn)
                 if (!rstn) begin
-                    full <= 1'b0;
+                    empty <= 1'b1;
                 end
                 else begin
-                    full <= full_next;
+                    empty <= empty_next;
                     if (w_valid && w_ready) buffer <= w_data;
                 end
 
