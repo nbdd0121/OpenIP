@@ -24,6 +24,7 @@
  * DAMAGE.
  */
 
+// Interface that defines an AXI-Lite channel.
 interface axi_lite_channel #(
     ADDR_WIDTH = 48,
     DATA_WIDTH = 64

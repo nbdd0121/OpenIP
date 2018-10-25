@@ -24,6 +24,7 @@
  * DAMAGE.
  */
 
+// Interface that defines an AXI channel.
 interface axi_channel #(
     ID_WIDTH = 8,
     ADDR_WIDTH = 48,

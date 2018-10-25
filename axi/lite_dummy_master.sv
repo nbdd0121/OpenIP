@@ -24,6 +24,7 @@
  * DAMAGE.
  */
 
+// A dummy AXI-Lite master device that never sends requests. Useful for prototyping.
 module axi_lite_dummy_master (
     axi_lite_channel.master slave
 );
