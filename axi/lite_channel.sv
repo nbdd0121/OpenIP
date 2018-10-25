@@ -29,6 +29,9 @@ interface axi_lite_channel #(
     DATA_WIDTH = 64
 );
 
+    // Static checks of paramters
+    initial assert(DATA_WIDTH == 32 || DATA_WIDTH == 64) else $fatal("DATA_WIDTH must be either 32 or 64");
+
     logic [ADDR_WIDTH-1:0]   aw_addr;
     logic [2:0]              aw_prot;
     logic                    aw_valid;
