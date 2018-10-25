@@ -33,8 +33,8 @@ module fifo #(
     parameter CAPACITY = 1,
     parameter PASS_THROUGH = 0
 ) (
-    input logic clk,
-    input logic rstn,
+    input  logic clk,
+    input  logic rstn,
 
     input  logic w_valid,
     output logic w_ready,
