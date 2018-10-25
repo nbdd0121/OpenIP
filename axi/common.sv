@@ -34,7 +34,10 @@ package axi_common;
     } burst_t;
 
     typedef logic [3:0] cache_t;
-
+    localparam CACHE_BUFFERABLE     = 4'b0001;
+    localparam CACHE_MODIFIABLE     = 4'b0010;
+    localparam CACHE_OTHER_ALLOCATE = 4'b0100;
+    localparam CACHE_ALLOCATE       = 4'b1000;
 
     typedef logic [2:0] prot_t;
     localparam PROT_PRIVILEGED  = 3'b001;

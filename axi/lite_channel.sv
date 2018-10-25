@@ -66,6 +66,9 @@ interface axi_lite_channel #(
     logic                    b_ready;
 
     modport master (
+        input  clk,
+        input  rstn,
+
         output aw_addr,
         output aw_prot,
         output aw_valid,
@@ -92,6 +95,9 @@ interface axi_lite_channel #(
     );
 
     modport slave (
+        input  clk,
+        input  rstn,
+
         input  aw_addr,
         input  aw_prot,
         input  aw_valid,

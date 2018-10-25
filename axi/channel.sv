@@ -103,6 +103,9 @@ interface axi_channel #(
     logic                     b_ready;
 
     modport master (
+        input  clk,
+        input  rstn,
+
         output aw_id,
         output aw_addr,
         output aw_len,
@@ -154,6 +157,9 @@ interface axi_channel #(
     );
 
     modport slave (
+        input  clk,
+        input  rstn,
+
         input  aw_id,
         input  aw_addr,
         input  aw_len,
