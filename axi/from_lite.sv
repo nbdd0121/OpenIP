@@ -37,7 +37,7 @@ module axi_from_lite #(
     // Static checks of interface matching
     initial
         assert(master.ADDR_WIDTH == slave.ADDR_WIDTH && master.DATA_WIDTH == slave.DATA_WIDTH)
-        else $fatal("ADDR_WIDTH and/or DATA_WIDTH of AXI and AXI-Lite port mismatch");
+        else $fatal(1, "ADDR_WIDTH and/or DATA_WIDTH of AXI and AXI-Lite port mismatch");
 
     // AXI-Lite does not support AXI IDs, so all accesses use a single fixed ID value.
     assign slave.aw_id     = '0;

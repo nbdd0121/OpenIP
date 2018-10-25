@@ -39,7 +39,7 @@ interface axi_lite_channel #(
     localparam STRB_WIDTH = DATA_WIDTH / 8;
 
     // Static checks of paramters
-    initial assert(DATA_WIDTH == 32 || DATA_WIDTH == 64) else $fatal("DATA_WIDTH must be either 32 or 64");
+    initial assert(DATA_WIDTH == 32 || DATA_WIDTH == 64) else $fatal(1, "DATA_WIDTH must be either 32 or 64");
 
     logic [ADDR_WIDTH-1:0]   aw_addr;
     prot_t                   aw_prot;
