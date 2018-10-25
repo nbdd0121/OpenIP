@@ -1,3 +1,29 @@
+/*
+ * Copyright (c) 2018, Gary Guo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ *  * Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+ * DAMAGE.
+ */
+
 interface axi_channel #(
     ID_WIDTH = 8,
     ADDR_WIDTH = 48,
@@ -10,54 +36,54 @@ interface axi_channel #(
     B_USER_WIDTH = 1
 );
 
-    logic [ID_WIDTH-1:0]        aw_id;
-    logic [ADDR_WIDTH-1:0]      aw_addr;
-    logic [7:0]                 aw_len;
-    logic [2:0]                 aw_size;
-    logic [1:0]                 aw_burst;
-    logic                       aw_lock;
-    logic [3:0]                 aw_cache;
-    logic [2:0]                 aw_prot;
-    logic [3:0]                 aw_qos;
-    logic [3:0]                 aw_region;
-    logic [AW_USER_WIDTH-1:0]   aw_user;
-    logic                       aw_valid;
-    logic                       aw_ready;
+    logic [ID_WIDTH-1:0]      aw_id;
+    logic [ADDR_WIDTH-1:0]    aw_addr;
+    logic [7:0]               aw_len;
+    logic [2:0]               aw_size;
+    logic [1:0]               aw_burst;
+    logic                     aw_lock;
+    logic [3:0]               aw_cache;
+    logic [2:0]               aw_prot;
+    logic [3:0]               aw_qos;
+    logic [3:0]               aw_region;
+    logic [AW_USER_WIDTH-1:0] aw_user;
+    logic                     aw_valid;
+    logic                     aw_ready;
 
-    logic [ID_WIDTH-1:0]        ar_id;
-    logic [ADDR_WIDTH-1:0]      ar_addr;
-    logic [7:0]                 ar_len;
-    logic [2:0]                 ar_size;
-    logic [1:0]                 ar_burst;
-    logic                       ar_lock;
-    logic [3:0]                 ar_cache;
-    logic [2:0]                 ar_prot;
-    logic [3:0]                 ar_qos;
-    logic [3:0]                 ar_region;
-    logic [AR_USER_WIDTH-1:0]   ar_user;
-    logic                       ar_valid;
-    logic                       ar_ready;
+    logic [ID_WIDTH-1:0]      ar_id;
+    logic [ADDR_WIDTH-1:0]    ar_addr;
+    logic [7:0]               ar_len;
+    logic [2:0]               ar_size;
+    logic [1:0]               ar_burst;
+    logic                     ar_lock;
+    logic [3:0]               ar_cache;
+    logic [2:0]               ar_prot;
+    logic [3:0]               ar_qos;
+    logic [3:0]               ar_region;
+    logic [AR_USER_WIDTH-1:0] ar_user;
+    logic                     ar_valid;
+    logic                     ar_ready;
 
-    logic [DATA_WIDTH-1:0]      w_data;
-    logic [DATA_WIDTH/8-1:0]    w_strb;
-    logic                       w_last;
-    logic [W_USER_WIDTH-1:0]    w_user;
-    logic                       w_valid;
-    logic                       w_ready;
+    logic [DATA_WIDTH-1:0]    w_data;
+    logic [DATA_WIDTH/8-1:0]  w_strb;
+    logic                     w_last;
+    logic [W_USER_WIDTH-1:0]  w_user;
+    logic                     w_valid;
+    logic                     w_ready;
 
-    logic [ID_WIDTH-1:0]        r_id;
-    logic [DATA_WIDTH-1:0]      r_data;
-    logic [1:0]                 r_resp;
-    logic                       r_last;
-    logic [R_USER_WIDTH-1:0]    r_user;
-    logic                       r_valid;
-    logic                       r_ready;
+    logic [ID_WIDTH-1:0]      r_id;
+    logic [DATA_WIDTH-1:0]    r_data;
+    logic [1:0]               r_resp;
+    logic                     r_last;
+    logic [R_USER_WIDTH-1:0]  r_user;
+    logic                     r_valid;
+    logic                     r_ready;
 
-    logic [ID_WIDTH-1:0]        b_id;
-    logic [1:0]                 b_resp;
-    logic [B_USER_WIDTH-1:0]    b_user;
-    logic                       b_valid;
-    logic                       b_ready;
+    logic [ID_WIDTH-1:0]      b_id;
+    logic [1:0]               b_resp;
+    logic [B_USER_WIDTH-1:0]  b_user;
+    logic                     b_valid;
+    logic                     b_ready;
 
     modport master (
         output aw_id,
@@ -162,4 +188,3 @@ interface axi_channel #(
     );
 
 endinterface
-
