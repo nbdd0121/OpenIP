@@ -47,7 +47,7 @@ module axi_from_lite #(
     // All accesses are defined to be of full width.
     assign slave.aw_size   = $clog2(DATA_WIDTH / 8);
     // This burst type has no meaning because burst length is 1, but we still prefer to fix it at INCR.
-    assign slave.aw_burst  = 2'h1;
+    assign slave.aw_burst  = axi_common::BURST_INCR;
     // All accesses are defined as normal access.
     assign slave.aw_lock   = 1'b0;
     // All accesses are defined to be non-modifiable, non-bufferable.
@@ -64,7 +64,7 @@ module axi_from_lite #(
     assign slave.ar_addr   = master.ar_addr;
     assign slave.ar_len    = 8'h0;
     assign slave.ar_size   = $clog2(DATA_WIDTH / 8);
-    assign slave.ar_burst  = 2'h0;
+    assign slave.ar_burst  = axi_common::BURST_INCR;
     assign slave.ar_lock   = 1'b0;
     assign slave.ar_cache  = 4'h0;
     assign slave.ar_prot   = master.ar_prot;

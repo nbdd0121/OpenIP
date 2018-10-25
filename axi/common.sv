@@ -24,45 +24,28 @@
  * DAMAGE.
  */
 
-// A dummy AXI master device that never sends requests. Useful for prototyping.
-module axi_dummy_master (
-    axi_channel.master slave
-);
+// Common definitions and enums for AXI
+package axi_common;
 
-    assign slave.aw_id     = '0;
-    assign slave.aw_addr   = '0;
-    assign slave.aw_len    = 8'h0;
-    assign slave.aw_size   = 3'h0;
-    assign slave.aw_burst  = axi_common::BURST_INCR;
-    assign slave.aw_lock   = 1'b0;
-    assign slave.aw_cache  = 4'h0;
-    assign slave.aw_prot   = 3'h0;
-    assign slave.aw_qos    = 4'h0;
-    assign slave.aw_region = 4'h0;
-    assign slave.aw_user   = '0;
-    assign slave.aw_valid  = 1'b0;
+    typedef enum logic [1:0] {
+        BURST_FIXED = 2'b00,
+        BURST_INCR  = 2'b01,
+        BURST_WRAP  = 2'b10
+    } burst_t;
 
-    assign slave.ar_id     = '0;
-    assign slave.ar_addr   = '0;
-    assign slave.ar_len    = 8'h0;
-    assign slave.ar_size   = 3'h0;
-    assign slave.ar_burst  = axi_common::BURST_INCR;
-    assign slave.ar_lock   = 1'b0;
-    assign slave.ar_cache  = 4'h0;
-    assign slave.ar_prot   = 3'h0;
-    assign slave.ar_qos    = 4'h0;
-    assign slave.ar_region = 4'h0;
-    assign slave.ar_user   = '0;
-    assign slave.ar_valid  = 1'b0;
+    typedef logic [3:0] cache_t;
 
-    assign slave.w_data    = '0;
-    assign slave.w_strb    = '0;
-    assign slave.w_last    = 1'b0;
-    assign slave.w_user    = '0;
-    assign slave.w_valid   = 1'b0;
 
-    assign slave.r_ready   = 1'b0;
+    typedef logic [2:0] prot_t;
+    localparam PROT_PRIVILEGED  = 3'b001;
+    localparam PROT_SECURE      = 3'b010;
+    localparam PROT_INSTRUCTION = 3'b100;
 
-    assign slave.b_ready   = 1'b0;
+    typedef enum logic [1:0] {
+        RESP_OKAY   = 2'b00,
+        RESP_EXOKAY = 2'b01,
+        RESP_SLVERR = 2'b10,
+        RESP_DECERR = 2'b11
+    } resp_t;
 
-endmodule
+endpackage

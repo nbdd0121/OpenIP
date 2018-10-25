@@ -24,6 +24,8 @@
  * DAMAGE.
  */
 
+import axi_common::*;
+
 // Interface that defines an AXI channel.
 interface axi_channel #(
     ID_WIDTH = 8,
@@ -35,7 +37,13 @@ interface axi_channel #(
     W_USER_WIDTH = 1,
     R_USER_WIDTH = 1,
     B_USER_WIDTH = 1
+) (
+    // Shared clock and reset signals.
+    input logic clk,
+    input logic rstn
 );
+
+    localparam STRB_WIDTH = DATA_WIDTH / 8;
 
     // Static checks of paramters
     initial begin
@@ -45,15 +53,14 @@ interface axi_channel #(
         assert(8 <= DATA_WIDTH && DATA_WIDTH <= 1024) else $fatal("DATA_WIDTH is not within range [8, 1024]");
     end
 
-
     logic [ID_WIDTH-1:0]      aw_id;
     logic [ADDR_WIDTH-1:0]    aw_addr;
     logic [7:0]               aw_len;
     logic [2:0]               aw_size;
-    logic [1:0]               aw_burst;
+    burst_t                   aw_burst;
     logic                     aw_lock;
-    logic [3:0]               aw_cache;
-    logic [2:0]               aw_prot;
+    cache_t                   aw_cache;
+    prot_t                    aw_prot;
     logic [3:0]               aw_qos;
     logic [3:0]               aw_region;
     logic [AW_USER_WIDTH-1:0] aw_user;
@@ -64,10 +71,10 @@ interface axi_channel #(
     logic [ADDR_WIDTH-1:0]    ar_addr;
     logic [7:0]               ar_len;
     logic [2:0]               ar_size;
-    logic [1:0]               ar_burst;
+    burst_t                   ar_burst;
     logic                     ar_lock;
-    logic [3:0]               ar_cache;
-    logic [2:0]               ar_prot;
+    cache_t                   ar_cache;
+    prot_t                    ar_prot;
     logic [3:0]               ar_qos;
     logic [3:0]               ar_region;
     logic [AR_USER_WIDTH-1:0] ar_user;
@@ -75,7 +82,7 @@ interface axi_channel #(
     logic                     ar_ready;
 
     logic [DATA_WIDTH-1:0]    w_data;
-    logic [DATA_WIDTH/8-1:0]  w_strb;
+    logic [STRB_WIDTH-1:0]    w_strb;
     logic                     w_last;
     logic [W_USER_WIDTH-1:0]  w_user;
     logic                     w_valid;
@@ -83,14 +90,14 @@ interface axi_channel #(
 
     logic [ID_WIDTH-1:0]      r_id;
     logic [DATA_WIDTH-1:0]    r_data;
-    logic [1:0]               r_resp;
+    resp_t                    r_resp;
     logic                     r_last;
     logic [R_USER_WIDTH-1:0]  r_user;
     logic                     r_valid;
     logic                     r_ready;
 
     logic [ID_WIDTH-1:0]      b_id;
-    logic [1:0]               b_resp;
+    resp_t                    b_resp;
     logic [B_USER_WIDTH-1:0]  b_user;
     logic                     b_valid;
     logic                     b_ready;

@@ -24,36 +24,44 @@
  * DAMAGE.
  */
 
+import axi_common::*;
+
 // Interface that defines an AXI-Lite channel.
 interface axi_lite_channel #(
     ADDR_WIDTH = 48,
     DATA_WIDTH = 64
+) (
+    // Shared clock and reset signals.
+    input logic clk,
+    input logic rstn
 );
+
+    localparam STRB_WIDTH = DATA_WIDTH / 8;
 
     // Static checks of paramters
     initial assert(DATA_WIDTH == 32 || DATA_WIDTH == 64) else $fatal("DATA_WIDTH must be either 32 or 64");
 
     logic [ADDR_WIDTH-1:0]   aw_addr;
-    logic [2:0]              aw_prot;
+    prot_t                   aw_prot;
     logic                    aw_valid;
     logic                    aw_ready;
 
     logic [ADDR_WIDTH-1:0]   ar_addr;
-    logic [2:0]              ar_prot;
+    prot_t                   ar_prot;
     logic                    ar_valid;
     logic                    ar_ready;
 
     logic [DATA_WIDTH-1:0]   w_data;
-    logic [DATA_WIDTH/8-1:0] w_strb;
+    logic [STRB_WIDTH-1:0]   w_strb;
     logic                    w_valid;
     logic                    w_ready;
 
     logic [DATA_WIDTH-1:0]   r_data;
-    logic [1:0]              r_resp;
+    resp_t                   r_resp;
     logic                    r_valid;
     logic                    r_ready;
 
-    logic [1:0]              b_resp;
+    resp_t                   b_resp;
     logic                    b_valid;
     logic                    b_ready;
 

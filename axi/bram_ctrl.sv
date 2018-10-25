@@ -26,8 +26,8 @@ module axi_bram_ctrl #(
     assign master.aw_ready = a_ready;
 
     // Read/write response. We always give a success response.
-    assign master.r_resp = 0;
-    assign master.b_resp = 0;
+    assign master.r_resp = axi_common::RESP_OKAY;
+    assign master.b_resp = axi_common::RESP_OKAY;
 
     // Reading part
     // The address and remaining length of current read transaction.
@@ -99,7 +99,7 @@ module axi_bram_ctrl #(
                 // Make sure our assumptions are held.
                 assert ((master.ar_addr & (DATA_WIDTH / 8-1)) == 0) else $error("Unaligned burst not supported: ar_addr = %x", master.ar_addr);
                 assert ((8 << master.ar_size) == DATA_WIDTH) else $error("Narrow burst not supported");
-                assert (master.ar_burst == 1) else $error("Only INCR burst mode is supported");
+                assert (master.ar_burst == axi_common::BURST_INCR) else $error("Only INCR burst mode is supported");
 
                 // If we acked a read, then on this clock posedge the BRAM will see the address and respond with the data.
                 // So valid data should be on r_data wire it after this clock posedge. Therefore we can set valid to high.
@@ -118,7 +118,7 @@ module axi_bram_ctrl #(
                 // Make sure our assumptions are held.
                 assert ((master.aw_addr & (DATA_WIDTH / 8-1)) == 0) else $error("Unaligned burst not supported, aw_addr = %x", master.aw_addr);
                 assert ((8 << master.aw_size) == DATA_WIDTH) else $error("Narrow burst not supported");
-                assert (master.aw_burst == 1) else $error("Only INCR burst mode is supported");
+                assert (master.aw_burst == axi_common::BURST_INCR) else $error("Only INCR burst mode is supported");
 
                 // Set the address and length to the requested address and length.
                 write_burst_addr <= master.aw_addr[UNUSED_ADDR_WIDTH +: BRAM_ADDR_WIDTH];
