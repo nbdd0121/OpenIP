@@ -20,6 +20,10 @@ module axi_bram_ctrl #(
 
     /* AXI Interfacing */
 
+    // We don't use user signals
+    assign master.r_user = 'x;
+    assign master.b_user = 'x;
+
     // Whether we are ready for a new transaction
     logic a_ready;
     assign master.ar_ready = a_ready;
@@ -41,7 +45,7 @@ module axi_bram_ctrl #(
 
     // Whether next data in a read burst can be served
     logic read_data_acked;
-    assign read_data_acked = master.r_ready & master.r_valid & read_burst_len != 0;
+    assign read_data_acked = master.r_ready & master.r_valid & !master.r_last;
 
     // Whether there is an pending read response
     // we can only guarantee that BRAM data is available for one cycle
@@ -82,6 +86,15 @@ module axi_bram_ctrl #(
     always_ff @(posedge clk or negedge resetn)
     begin
         if (!resetn) begin
+            // Resets these even if we don't care to suppress warnings.
+            read_burst_addr   <= 'x;
+            read_burst_len    <= 'x;
+            pending_read_data <= 'x;
+            write_burst_addr  <= 'x;
+            write_burst_len   <= 'x;
+            master.r_id       <= 'x;
+            master.b_id       <= 'x;
+
             pending_read   <= 0;
             pending_write  <= 0;
             a_ready        <= 1;
@@ -145,7 +158,7 @@ module axi_bram_ctrl #(
                 pending_read <= 0;
 
                 // If we have already send the last word.
-                if (read_burst_len == 0) begin
+                if (master.r_last) begin
                     master.r_valid <= 0;
 
                     // If we have pending write transaction, begin that.
@@ -177,6 +190,7 @@ module axi_bram_ctrl #(
                 // Last word to write. Unassert ready and assert write complete.
                 if (master.w_last) begin
                     master.w_ready <= 0;
+                    assert (write_burst_len == 1) else $error("WLAST mismatch with tracked length");
 
                     // Transition to write complete state
                     master.b_valid <= 1;
