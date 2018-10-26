@@ -83,22 +83,32 @@ module axi_to_lite #(
     //          for realigning apply mask out (1 << axsize) - 1
     // * WRAP : first perform INCR, but wrap within an aligned address block of size (axlen << axsize)
     //          for wrapping, simply mask out len
+    //
+    // AXI requires address to not cross 4K boundary, so only lower 12 bits are touched.
 
-    function automatic logic [ADDR_WIDTH-1:0] increment(
-        input logic [ADDR_WIDTH-1:0] addr,
-        input logic [2:0]            size,
-        input burst_t                burst
+    function automatic logic [11:0] increment(
+        input logic [11:0] addr,
+        input logic [2:0]  size,
+        input logic [3:0]  wrap_len,
+        input burst_t      burst
     );
 
         unique case (burst)
             BURST_FIXED:
                 increment = addr;
             BURST_INCR: begin
-                // TODO: realign
-                increment = addr + (1 << size);
+                logic [7:0] shift = 1 << size;
+                logic [11:0] mask = shift - 1;
+                increment = (addr &~ mask) + shift;
+            end
+            BURST_WRAP: begin
+                logic [7:0] shift = 1 << size;
+                // AXI requires len to be 1, 3, 7 or 15, so they are naturally masks.
+                logic [11:0] mask = wrap_len << size;
+                // Basically this restricts the addition to be within the mask and keeps things outside mask fixed.
+                increment = ((addr + shift) & mask) | (addr &~ mask);
             end
             default:
-                // TODO: WRAP mode
                 increment = 'x;
         endcase
 
@@ -118,12 +128,18 @@ module axi_to_lite #(
     logic [DATA_WIDTH-1:0] ar_addr, ar_addr_next;
     // Remaining burst length and its next value.
     logic [7:0]            ar_len, ar_len_next;
+    logic [3:0]            ar_wrap_len;
     // When the FIFO to read response channel is full, we need to prepare to stall read address channel.
     // So we have this signal here which will be provided by the FIFO, and we can only proceed if it is asserted.
     logic                  rfifo_ready;
 
     // Calculate the next address and remaining length within the burst.
-    assign ar_addr_next = increment(ar_addr, ar_size, ar_burst);
+    generate
+        if (ADDR_WIDTH > 12)
+            assign ar_addr_next = {ar_addr[ADDR_WIDTH-1:12], increment(ar_addr[11:0], ar_size, ar_wrap_len, ar_burst)};
+        else
+            assign ar_addr_next = increment(ar_addr, ar_size, ar_wrap_len, ar_burst);
+    endgenerate
     assign ar_len_next  = ar_len - 1;
 
     always_ff @(posedge clk or negedge rstn) begin
@@ -134,6 +150,7 @@ module axi_to_lite #(
             ar_prot     <= 'x;
             ar_addr     <= 'x;
             ar_len      <= 'x;
+            ar_wrap_len <= 'x;
         end
         else begin
             // When we are breaking bursty transaction
@@ -148,6 +165,7 @@ module axi_to_lite #(
                         ar_prot     <= 'x;
                         ar_addr     <= 'x;
                         ar_len      <= 'x;
+                        ar_wrap_len <= 'x;
                     end
                     else begin
                         ar_addr     <= ar_addr_next;
@@ -168,6 +186,7 @@ module axi_to_lite #(
                     ar_addr     <= master.ar_addr;
                     ar_prot     <= master.ar_prot;
                     ar_len      <= master.ar_len;
+                    ar_wrap_len <= master.ar_len[3:0];
                 end
             end
         end
@@ -263,9 +282,15 @@ module axi_to_lite #(
     prot_t                 aw_prot;
     logic [DATA_WIDTH-1:0] aw_addr, aw_addr_next;
     logic [7:0]            aw_len, aw_len_next;
+    logic [3:0]            aw_wrap_len;
     logic                  wfifo_ready;
 
-    assign aw_addr_next = increment(aw_addr, aw_size, aw_burst);
+    generate
+        if (ADDR_WIDTH > 12)
+            assign aw_addr_next = {aw_addr[ADDR_WIDTH-1:12], increment(aw_addr[11:0], aw_size, aw_wrap_len, aw_burst)};
+        else
+            assign aw_addr_next = increment(aw_addr, aw_size, aw_wrap_len, aw_burst);
+    endgenerate
     assign aw_len_next  = aw_len - 1;
 
     always_ff @(posedge clk or negedge rstn) begin
@@ -276,6 +301,7 @@ module axi_to_lite #(
             aw_prot     <= 'x;
             aw_addr     <= 'x;
             aw_len      <= 'x;
+            aw_wrap_len <= 'x;
         end
         else begin
             if (aw_in_burst) begin
@@ -287,6 +313,7 @@ module axi_to_lite #(
                         aw_prot     <= 'x;
                         aw_addr     <= 'x;
                         aw_len      <= 'x;
+                        aw_wrap_len <= 'x;
                     end
                     else begin
                         aw_addr     <= aw_addr_next;
@@ -302,6 +329,7 @@ module axi_to_lite #(
                     aw_addr     <= master.aw_addr;
                     aw_prot     <= master.aw_prot;
                     aw_len      <= master.aw_len;
+                    aw_wrap_len <= master.aw_len[3:0];
                 end
             end
         end
