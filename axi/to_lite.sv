@@ -36,20 +36,21 @@ import axi_common::*;
 // AXI-Lite device.
 module axi_to_lite #(
     parameter MAX_R_XACT = 1,
-    parameter MAX_W_XACT = 1
+    parameter MAX_W_XACT = 1,
+    parameter ID_WIDTH   = 8,
+    parameter ADDR_WIDTH = 48,
+    parameter DATA_WIDTH = 64
 ) (
     axi_channel.slave       master,
     axi_lite_channel.master slave
 );
 
-    localparam ID_WIDTH   = master.ID_WIDTH;
-    localparam ADDR_WIDTH = master.ADDR_WIDTH;
-    localparam DATA_WIDTH = master.DATA_WIDTH;
-
     // Static checks of interface matching
     initial
-        assert(ADDR_WIDTH == slave.ADDR_WIDTH && DATA_WIDTH == slave.DATA_WIDTH)
-        else $fatal(1, "ADDR_WIDTH and/or DATA_WIDTH of AXI and AXI-Lite port mismatch");
+        assert(ID_WIDTH == master.ID_WIDTH &&
+               ADDR_WIDTH ==  master.ADDR_WIDTH && ADDR_WIDTH == slave.ADDR_WIDTH &&
+               DATA_WIDTH == master.DATA_WIDTH && DATA_WIDTH == slave.DATA_WIDTH)
+        else $fatal(1, "ID_WIDTH, ADDR_WIDTH and/or DATA_WIDTH mismatch");
 
     // Extract clk and rstn signals from interfaces
     logic clk;

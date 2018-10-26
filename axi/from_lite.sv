@@ -27,7 +27,6 @@
 // A bridge that connects an AXI-Lite master with an AXI slave. It requires address and data width to match and does
 // not perform width conversion.
 module axi_from_lite #(
-    ADDR_WIDTH = 48,
     DATA_WIDTH = 64
 ) (
     axi_lite_channel.slave master,
@@ -36,7 +35,8 @@ module axi_from_lite #(
 
     // Static checks of interface matching
     initial
-        assert(master.ADDR_WIDTH == slave.ADDR_WIDTH && master.DATA_WIDTH == slave.DATA_WIDTH)
+        assert(master.ADDR_WIDTH == slave.ADDR_WIDTH &&
+               DATA_WIDTH == master.DATA_WIDTH && DATA_WIDTH == master.DATA_WIDTH)
         else $fatal(1, "ADDR_WIDTH and/or DATA_WIDTH of AXI and AXI-Lite port mismatch");
 
     // AXI-Lite does not support AXI IDs, so all accesses use a single fixed ID value.
