@@ -391,7 +391,7 @@ module axi_to_lite #(
     // Perform ID reflection.
     assign master.b_id    = b_in_burst ? b_id : wfifo_xact.id;
     assign master.b_resp  = b_in_burst ? b_resp_next : slave.b_resp;
-    assign master.r_user  = 'x;
+    assign master.b_user  = 'x;
     // If this is not going to be the last one, then we will not assert this and we have to merge the responses.
     assign master.b_valid = b_last ? slave.b_valid  : 1'b0;
     // If this is not going to be the last one, then we will assert this so we can data for merging.
@@ -400,9 +400,6 @@ module axi_to_lite #(
     //
     // FIFOs for passing information around
     //
-    // Fun fact: If PASS_THROUGH is enabled on these FIFO, then reducing capacity to 1 can still achieve max throughput
-    // for BRAM, as AR channel can push into the FIFO while R channel is getting things out. However it is not
-    // implemented in such way as it creates combinational path between two channels.
 
     fifo #(
         .TYPE     (xact_t),
