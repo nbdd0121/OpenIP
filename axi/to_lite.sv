@@ -38,8 +38,7 @@ module axi_to_lite #(
     parameter MAX_R_XACT = 1,
     parameter MAX_W_XACT = 1,
     parameter ID_WIDTH   = 8,
-    parameter ADDR_WIDTH = 48,
-    parameter DATA_WIDTH = 64
+    parameter ADDR_WIDTH = 48
 ) (
     axi_channel.slave       master,
     axi_lite_channel.master slave
@@ -47,9 +46,8 @@ module axi_to_lite #(
 
     // Static checks of interface matching
     initial
-        assert(ID_WIDTH == master.ID_WIDTH &&
-               ADDR_WIDTH ==  master.ADDR_WIDTH && ADDR_WIDTH == slave.ADDR_WIDTH &&
-               DATA_WIDTH == master.DATA_WIDTH && DATA_WIDTH == slave.DATA_WIDTH)
+        assert(ID_WIDTH == master.ID_WIDTH && master.DATA_WIDTH == slave.DATA_WIDTH &&
+               ADDR_WIDTH ==  master.ADDR_WIDTH && ADDR_WIDTH == slave.ADDR_WIDTH)
         else $fatal(1, "ID_WIDTH, ADDR_WIDTH and/or DATA_WIDTH mismatch");
 
     // Extract clk and rstn signals from interfaces
@@ -94,21 +92,22 @@ module axi_to_lite #(
         input burst_t      burst
     );
 
+        automatic logic [7:0] shift;
+        automatic logic [11:0] incr_mask;
+        automatic logic [11:0] wrap_mask;
+        shift = 1 << size;
+        incr_mask = shift - 1;
+        // AXI requires len to be 1, 3, 7 or 15, so they are naturally masks.
+        wrap_mask = wrap_len << size;
+
         unique case (burst)
             BURST_FIXED:
                 increment = addr;
-            BURST_INCR: begin
-                logic [7:0] shift = 1 << size;
-                logic [11:0] mask = shift - 1;
-                increment = (addr &~ mask) + shift;
-            end
-            BURST_WRAP: begin
-                logic [7:0] shift = 1 << size;
-                // AXI requires len to be 1, 3, 7 or 15, so they are naturally masks.
-                logic [11:0] mask = wrap_len << size;
+            BURST_INCR:
+                increment = (addr &~ incr_mask) + shift;
+            BURST_WRAP:
                 // Basically this restricts the addition to be within the mask and keeps things outside mask fixed.
-                increment = ((addr + shift) & mask) | (addr &~ mask);
-            end
+                increment = ((addr + shift) & wrap_mask) | (addr &~ wrap_mask);
             default:
                 increment = 'x;
         endcase
@@ -126,7 +125,7 @@ module axi_to_lite #(
     burst_t                ar_burst;
     prot_t                 ar_prot;
     // The last address that gets sent out to slave, and the next address.
-    logic [DATA_WIDTH-1:0] ar_addr, ar_addr_next;
+    logic [ADDR_WIDTH-1:0] ar_addr, ar_addr_next;
     // Remaining burst length and its next value.
     logic [7:0]            ar_len, ar_len_next;
     logic [3:0]            ar_wrap_len;
@@ -215,7 +214,6 @@ module axi_to_lite #(
 
     // Signal about packed transaction information from/to FIFO
     logic                rfifo_valid;
-    logic                rfifo_pop;
     xact_t               rfifo_xact;
     // The state definition below is very similar to read address channel.
     logic                r_in_burst;
@@ -281,7 +279,7 @@ module axi_to_lite #(
     logic [2:0]            aw_size;
     burst_t                aw_burst;
     prot_t                 aw_prot;
-    logic [DATA_WIDTH-1:0] aw_addr, aw_addr_next;
+    logic [ADDR_WIDTH-1:0] aw_addr, aw_addr_next;
     logic [7:0]            aw_len, aw_len_next;
     logic [3:0]            aw_wrap_len;
     logic                  wfifo_ready;
@@ -358,7 +356,6 @@ module axi_to_lite #(
 
     /// Signal about packed transaction information from/to FIFO
     logic                wfifo_valid;
-    logic                wfifo_pop;
     xact_t               wfifo_xact;
     // The state definition below is very similar to read response channel.
     logic                b_in_burst;
