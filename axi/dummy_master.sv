@@ -42,6 +42,14 @@ module axi_dummy_master (
     assign slave.aw_user   = '0;
     assign slave.aw_valid  = 1'b0;
 
+    assign slave.w_data    = '0;
+    assign slave.w_strb    = '0;
+    assign slave.w_last    = 1'b0;
+    assign slave.w_user    = '0;
+    assign slave.w_valid   = 1'b0;
+
+    assign slave.b_ready   = 1'b0;
+
     assign slave.ar_id     = '0;
     assign slave.ar_addr   = '0;
     assign slave.ar_len    = 8'h0;
@@ -55,14 +63,6 @@ module axi_dummy_master (
     assign slave.ar_user   = '0;
     assign slave.ar_valid  = 1'b0;
 
-    assign slave.w_data    = '0;
-    assign slave.w_strb    = '0;
-    assign slave.w_last    = 1'b0;
-    assign slave.w_user    = '0;
-    assign slave.w_valid   = 1'b0;
-
     assign slave.r_ready   = 1'b0;
-
-    assign slave.b_ready   = 1'b0;
 
 endmodule

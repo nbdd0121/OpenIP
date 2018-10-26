@@ -67,6 +67,19 @@ interface axi_channel #(
     logic                     aw_valid;
     logic                     aw_ready;
 
+    logic [DATA_WIDTH-1:0]    w_data;
+    logic [STRB_WIDTH-1:0]    w_strb;
+    logic                     w_last;
+    logic [W_USER_WIDTH-1:0]  w_user;
+    logic                     w_valid;
+    logic                     w_ready;
+
+    logic [ID_WIDTH-1:0]      b_id;
+    resp_t                    b_resp;
+    logic [B_USER_WIDTH-1:0]  b_user;
+    logic                     b_valid;
+    logic                     b_ready;
+
     logic [ID_WIDTH-1:0]      ar_id;
     logic [ADDR_WIDTH-1:0]    ar_addr;
     logic [7:0]               ar_len;
@@ -81,13 +94,6 @@ interface axi_channel #(
     logic                     ar_valid;
     logic                     ar_ready;
 
-    logic [DATA_WIDTH-1:0]    w_data;
-    logic [STRB_WIDTH-1:0]    w_strb;
-    logic                     w_last;
-    logic [W_USER_WIDTH-1:0]  w_user;
-    logic                     w_valid;
-    logic                     w_ready;
-
     logic [ID_WIDTH-1:0]      r_id;
     logic [DATA_WIDTH-1:0]    r_data;
     resp_t                    r_resp;
@@ -95,12 +101,6 @@ interface axi_channel #(
     logic [R_USER_WIDTH-1:0]  r_user;
     logic                     r_valid;
     logic                     r_ready;
-
-    logic [ID_WIDTH-1:0]      b_id;
-    resp_t                    b_resp;
-    logic [B_USER_WIDTH-1:0]  b_user;
-    logic                     b_valid;
-    logic                     b_ready;
 
     modport master (
         input  clk,
@@ -120,6 +120,19 @@ interface axi_channel #(
         output aw_valid,
         input  aw_ready,
 
+        output w_data,
+        output w_strb,
+        output w_last,
+        output w_user,
+        output w_valid,
+        input  w_ready,
+
+        input  b_id,
+        input  b_resp,
+        input  b_user,
+        input  b_valid,
+        output b_ready,
+
         output ar_id,
         output ar_addr,
         output ar_len,
@@ -134,26 +147,13 @@ interface axi_channel #(
         output ar_valid,
         input  ar_ready,
 
-        output w_data,
-        output w_strb,
-        output w_last,
-        output w_user,
-        output w_valid,
-        input  w_ready,
-
         input  r_id,
         input  r_data,
         input  r_resp,
         input  r_last,
         input  r_user,
         input  r_valid,
-        output r_ready,
-
-        input  b_id,
-        input  b_resp,
-        input  b_user,
-        input  b_valid,
-        output b_ready
+        output r_ready
     );
 
     modport slave (
@@ -174,6 +174,19 @@ interface axi_channel #(
         input  aw_valid,
         output aw_ready,
 
+        input  w_data,
+        input  w_strb,
+        input  w_last,
+        input  w_user,
+        input  w_valid,
+        output w_ready,
+
+        output b_id,
+        output b_resp,
+        output b_user,
+        output b_valid,
+        input  b_ready,
+
         input  ar_id,
         input  ar_addr,
         input  ar_len,
@@ -188,26 +201,13 @@ interface axi_channel #(
         input  ar_valid,
         output ar_ready,
 
-        input  w_data,
-        input  w_strb,
-        input  w_last,
-        input  w_user,
-        input  w_valid,
-        output w_ready,
-
         output r_id,
         output r_data,
         output r_resp,
         output r_last,
         output r_user,
         output r_valid,
-        input  r_ready,
-
-        output b_id,
-        output b_resp,
-        output b_user,
-        output b_valid,
-        input  b_ready
+        input  r_ready
     );
 
 endinterface

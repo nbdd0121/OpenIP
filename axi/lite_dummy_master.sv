@@ -33,16 +33,16 @@ module axi_lite_dummy_master (
     assign slave.aw_prot  = 3'h0;
     assign slave.aw_valid = 1'b0;
 
-    assign slave.ar_addr  = '0;
-    assign slave.ar_prot  = 3'h0;
-    assign slave.ar_valid = 1'b0;
-
     assign slave.w_data   = '0;
     assign slave.w_strb   = '0;
     assign slave.w_valid  = 1'b0;
 
-    assign slave.r_ready  = 1'b0;
-
     assign slave.b_ready  = 1'b0;
+
+    assign slave.ar_addr  = '0;
+    assign slave.ar_prot  = 3'h0;
+    assign slave.ar_valid = 1'b0;
+
+    assign slave.r_ready  = 1'b0;
 
 endmodule
