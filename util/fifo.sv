@@ -62,7 +62,7 @@ module fifo #(
             logic full, full_next;
 
             // We cannot accept more writes when full. When empty, we can still accept read if there is a valid write.
-            assign w_ready = !full || (PASS_THROUGH && r_ready);
+            assign w_ready = !full;
             assign r_valid = !empty || (PASS_THROUGH && w_valid);
 
             // Function to calculate the next locaiton of a ring buffer pointer
@@ -126,7 +126,7 @@ module fifo #(
             TYPE buffer;
             // In this special case full and empty are always complements.
             logic empty, empty_next;
-            assign w_ready = empty || (PASS_THROUGH && r_ready);
+            assign w_ready = empty;
             assign r_valid = !empty || (PASS_THROUGH && w_valid);
 
             // Compute next state
