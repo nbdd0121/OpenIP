@@ -27,12 +27,12 @@
 import axi_common::*;
 
 // A bridge that connects an AXI master with an AXI-Lite slave. It requires address and data width to match and does
-// not perform width conversion. It will convert bursts into multiple transaction.
+// not perform width conversion. It will convert bursts into multiple transactions.
 //
-// MAX_{R/W}_XACT is the number of AXI transactions that can be processed before receiving any reply from slave on
-// read/write channel. If the slave device is pipelined, then tweaking this value can get more transactions in flight.
-// For example, if slave can response a read request every clock cycle (E.g. BRAM), then set MAX_R_XACT to 2 will
-// achieve the maximum throughput (1 out + 1 in). Their defaults are 1 as usually we don't need high throughput for
+// MAX_{R/W}_XACT is the number of AXI transactions that can be processed before receiving any replies from slave on
+// read/write channel. If the slave device is pipelined, then tweaking this value will get more transactions in flight.
+// For example, if the slave can response a read request every clock cycle (e.g. BRAM), then set MAX_R_XACT to 2 will
+// achieve the maximum throughput (1 out + 1 in). Their defaults are 1 as usually high throughput is not needed for
 // AXI-Lite device.
 module axi_to_lite #(
     parameter MAX_R_XACT = 1,
