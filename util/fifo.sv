@@ -29,8 +29,9 @@
 // !w_ready as full and !r_valid as empty.
 // FALL_THROUGH can be set to 1 to first-word fall-through.
 module fifo #(
-    parameter type TYPE = logic,
-    parameter CAPACITY = 1,
+    parameter WIDTH        = 1,
+    parameter type TYPE    = logic [WIDTH-1:0],
+    parameter CAPACITY     = 1,
     parameter FALL_THROUGH = 0
 ) (
     input  logic clk,

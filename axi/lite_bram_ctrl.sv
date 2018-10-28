@@ -72,7 +72,7 @@ module axi_lite_bram_ctrl #(
     logic                       aw_ready;
     logic [BRAM_ADDR_WIDTH-1:0] aw_addr;
     fifo #(
-        .TYPE         (logic [BRAM_ADDR_WIDTH-1:0]),
+        .WIDTH        (BRAM_ADDR_WIDTH),
         .CAPACITY     (FIFO_CAPACITY),
         .FALL_THROUGH (FALL_THROUGH)
     ) awfifo (
@@ -91,7 +91,7 @@ module axi_lite_bram_ctrl #(
     logic [DATA_WIDTH-1:0] w_data;
     logic [STRB_WIDTH-1:0] w_strb;
     fifo #(
-        .TYPE         (logic [DATA_WIDTH+STRB_WIDTH-1:0]),
+        .WIDTH        (DATA_WIDTH + STRB_WIDTH),
         .CAPACITY     (FIFO_CAPACITY),
         .FALL_THROUGH (FALL_THROUGH)
     ) wfifo (
@@ -113,7 +113,7 @@ module axi_lite_bram_ctrl #(
     logic                       ar_ready;
     logic [BRAM_ADDR_WIDTH-1:0] ar_addr;
     fifo #(
-        .TYPE         (logic [BRAM_ADDR_WIDTH-1:0]),
+        .WIDTH        (BRAM_ADDR_WIDTH),
         .CAPACITY     (FIFO_CAPACITY),
         .FALL_THROUGH (FALL_THROUGH)
     ) arfifo (

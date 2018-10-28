@@ -39,7 +39,7 @@ module axi_bram_ctrl #(
     parameter HIGH_PERFORMANCE = 1,
     parameter FALL_THROUGH     = 1
 ) (
-    axi_channel.slave master,
+    axi_channel.slave               master,
 
     output                          bram_en,
     output [DATA_WIDTH/8-1:0]       bram_we,
