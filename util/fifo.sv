@@ -27,11 +27,11 @@
 // A general FIFO utility that accepts arbitary types and capacity.
 // The interface is defined with handshaking signals instead of traditional empty and full, but you can still use
 // !w_ready as full and !r_valid as empty.
-// PASS_THROUGH can be set to 1 to allow zero cycle latency between push and pop when FIFO is empty.
+// FALL_THROUGH can be set to 1 to first-word fall-through.
 module fifo #(
     parameter type TYPE = logic,
     parameter CAPACITY = 1,
-    parameter PASS_THROUGH = 0
+    parameter FALL_THROUGH = 0
 ) (
     input  logic clk,
     input  logic rstn,
@@ -63,7 +63,7 @@ module fifo #(
 
             // We cannot accept more writes when full. When empty, we can still accept read if there is a valid write.
             assign w_ready = !full;
-            assign r_valid = !empty || (PASS_THROUGH && w_valid);
+            assign r_valid = !empty || (FALL_THROUGH && w_valid);
 
             // Function to calculate the next locaiton of a ring buffer pointer
             function automatic logic [DEPTH-1:0] incr(input logic [DEPTH-1:0] ptr);
@@ -78,12 +78,12 @@ module fifo #(
                 empty_next = 1'b0;
                 full_next = 1'b0;
 
-                // Special cases when FIFO is empty and PASS_THROUGH is enabled. In this case we simply connect two
+                // Special cases when FIFO is empty and FALL_THROUGH is enabled. In this case we simply connect two
                 // sides together.
-                r_data = (PASS_THROUGH && empty) ? w_data : buffer[readptr];
+                r_data = (FALL_THROUGH && empty) ? w_data : buffer[readptr];
 
-                // If PASS_THROUGH is enabled and transaction happens, do not move pointers.
-                if (PASS_THROUGH && empty && r_ready && w_valid) begin
+                // If FALL_THROUGH is enabled and transaction happens, do not move pointers.
+                if (FALL_THROUGH && empty && r_ready && w_valid) begin
                     empty_next = 1'b1;
                 end
                 else begin
@@ -127,13 +127,13 @@ module fifo #(
             // In this special case full and empty are always complements.
             logic empty, empty_next;
             assign w_ready = empty;
-            assign r_valid = !empty || (PASS_THROUGH && w_valid);
+            assign r_valid = !empty || (FALL_THROUGH && w_valid);
 
             // Compute next state
             always_comb begin
                 empty_next = 1'b0;
-                r_data = (PASS_THROUGH && empty) ? w_data : buffer;
-                if (PASS_THROUGH && empty && r_ready && w_valid) begin
+                r_data = (FALL_THROUGH && empty) ? w_data : buffer;
+                if (FALL_THROUGH && empty && r_ready && w_valid) begin
                     empty_next = 1'b1;
                 end
                 else begin
