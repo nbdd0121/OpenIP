@@ -26,15 +26,16 @@
 
 // A component that converts an AXI-lite interface to a BRAM interface.
 //
-// By default this controller will use a fall-through FIFO, which introduces no latency but may cause timing issues.
-// It can be tweaked using {R,W}_FALL_THROUGH. You may also increase size of the FIFO by tweaking MAX_{R/W}_XACT.
+// HIGH_PERFORMANCE: By default this component runs in high performance mode (which means it can respond to one
+//     read/write request every cycle). Set this parameter to 0 will turn off high performance mode, reducing a few
+//     register usages. In many cases it can still respond one request per cycle.
+// FALL_THROUGH: By default this controller uses a fall-through FIFO to minimise latency. If this causes you timing
+//     issue, it can be turned off by setting it to 0.
 module axi_lite_bram_ctrl #(
-    parameter DATA_WIDTH = 64,
-    parameter BRAM_ADDR_WIDTH = 16,
-    parameter MAX_R_XACT = 1,
-    parameter MAX_W_XACT = 1,
-    parameter R_FALL_THROUGH = 1,
-    parameter W_FALL_THROUGH = 1
+    parameter DATA_WIDTH       = 64,
+    parameter BRAM_ADDR_WIDTH  = 16,
+    parameter HIGH_PERFORMANCE = 1,
+    parameter FALL_THROUGH     = 1
 ) (
     axi_lite_channel.slave       master,
 
@@ -47,6 +48,7 @@ module axi_lite_bram_ctrl #(
 
     localparam STRB_WIDTH = DATA_WIDTH / 8;
     localparam UNUSED_ADDR_WIDTH = $clog2(STRB_WIDTH);
+    localparam FIFO_CAPACITY = HIGH_PERFORMANCE ? 2 : 1;
 
     // Static checks of interface matching
     // We currently don't strictly enforce UNUSED_ADDR_WIDTH + BRAM_ADDR_WIDTH == master.ADDR_WIDTH and use truncation
@@ -71,8 +73,8 @@ module axi_lite_bram_ctrl #(
     logic [BRAM_ADDR_WIDTH-1:0] aw_addr;
     fifo #(
         .TYPE         (logic [BRAM_ADDR_WIDTH-1:0]),
-        .CAPACITY     (MAX_W_XACT),
-        .FALL_THROUGH (W_FALL_THROUGH)
+        .CAPACITY     (FIFO_CAPACITY),
+        .FALL_THROUGH (FALL_THROUGH)
     ) awfifo (
         .clk     (clk),
         .rstn    (rstn),
@@ -90,8 +92,8 @@ module axi_lite_bram_ctrl #(
     logic [STRB_WIDTH-1:0] w_strb;
     fifo #(
         .TYPE         (logic [DATA_WIDTH+STRB_WIDTH-1:0]),
-        .CAPACITY     (MAX_W_XACT),
-        .FALL_THROUGH (W_FALL_THROUGH)
+        .CAPACITY     (FIFO_CAPACITY),
+        .FALL_THROUGH (FALL_THROUGH)
     ) wfifo (
         .clk     (clk),
         .rstn    (rstn),
@@ -112,8 +114,8 @@ module axi_lite_bram_ctrl #(
     logic [BRAM_ADDR_WIDTH-1:0] ar_addr;
     fifo #(
         .TYPE         (logic [BRAM_ADDR_WIDTH-1:0]),
-        .CAPACITY     (MAX_R_XACT),
-        .FALL_THROUGH (R_FALL_THROUGH)
+        .CAPACITY     (FIFO_CAPACITY),
+        .FALL_THROUGH (FALL_THROUGH)
     ) arfifo (
         .clk     (clk),
         .rstn    (rstn),

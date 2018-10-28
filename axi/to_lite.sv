@@ -29,20 +29,18 @@ import axi_common::*;
 // A bridge that connects an AXI master with an AXI-Lite slave. It requires address and data width to match and does
 // not perform width conversion. It will convert bursts into multiple transactions.
 //
-// MAX_{R/W}_XACT is the number of AXI transactions that can be processed before receiving any replies from slave on
-// read/write channel. If the slave device is pipelined, then tweaking this value will get more transactions in flight.
-// For example, if the slave can response a read request every clock cycle (e.g. BRAM), then set MAX_R_XACT to 2 will
-// achieve the maximum throughput (1 out + 1 in). Their defaults are 1 as usually high throughput is not needed for
-// AXI-Lite device.
+// HIGH_PERFORMANCE: By default this component runs in high performance mode (which means it can initiate a read/write
+//     burst every cycle). Set this parameter to 0 will turn off high performance mode, reducing a few register usages.
 module axi_to_lite #(
-    parameter MAX_R_XACT = 1,
-    parameter MAX_W_XACT = 1,
-    parameter ID_WIDTH   = 8,
-    parameter ADDR_WIDTH = 48
+    parameter ID_WIDTH         = 8,
+    parameter ADDR_WIDTH       = 48,
+    parameter HIGH_PERFORMANCE = 1
 ) (
     axi_channel.slave       master,
     axi_lite_channel.master slave
 );
+
+    localparam FIFO_CAPACITY = HIGH_PERFORMANCE ? 2 : 1;
 
     // Static checks of interface matching
     initial
@@ -429,7 +427,7 @@ module axi_to_lite #(
 
     fifo #(
         .TYPE     (xact_t),
-        .CAPACITY (MAX_R_XACT)
+        .CAPACITY (FIFO_CAPACITY)
     ) rfifo (
         .clk     (clk),
         .rstn    (rstn),
@@ -443,7 +441,7 @@ module axi_to_lite #(
 
     fifo #(
         .TYPE     (xact_t),
-        .CAPACITY (MAX_W_XACT)
+        .CAPACITY (FIFO_CAPACITY)
     ) wfifo (
         .clk     (clk),
         .rstn    (rstn),
