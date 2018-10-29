@@ -40,7 +40,7 @@ module axi_to_lite #(
     axi_lite_channel.master slave
 );
 
-    localparam FIFO_CAPACITY = HIGH_PERFORMANCE ? 2 : 1;
+    localparam FIFO_DEPTH = HIGH_PERFORMANCE ? 2 : 1;
 
     // Static checks of interface matching
     initial
@@ -426,8 +426,8 @@ module axi_to_lite #(
     //
 
     fifo #(
-        .TYPE     (xact_t),
-        .CAPACITY (FIFO_CAPACITY)
+        .TYPE  (xact_t),
+        .DEPTH (FIFO_DEPTH)
     ) rfifo (
         .clk     (clk),
         .rstn    (rstn),
@@ -440,8 +440,8 @@ module axi_to_lite #(
     );
 
     fifo #(
-        .TYPE     (xact_t),
-        .CAPACITY (FIFO_CAPACITY)
+        .TYPE  (xact_t),
+        .DEPTH (FIFO_DEPTH)
     ) wfifo (
         .clk     (clk),
         .rstn    (rstn),

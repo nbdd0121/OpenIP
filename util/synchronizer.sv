@@ -26,8 +26,8 @@
 
 // A super simple synchroniser.
 module synchronizer #(
-    parameter WIDTH     = 1,
-    parameter type TYPE = logic [WIDTH-1:0]
+    parameter DATA_WIDTH = 1,
+    parameter type TYPE  = logic [DATA_WIDTH-1:0]
 ) (
     input  logic clk,
     input  logic rstn,

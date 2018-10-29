@@ -24,14 +24,14 @@
  * DAMAGE.
  */
 
-// A general FIFO utility that accepts arbitary types and capacity.
+// A general FIFO utility that accepts arbitary types and depth.
 // The interface is defined with handshaking signals instead of traditional empty and full, but you can still use
 // !w_ready as full and !r_valid as empty.
 // FALL_THROUGH can be set to 1 to first-word fall-through.
 module fifo #(
-    parameter WIDTH        = 1,
-    parameter type TYPE    = logic [WIDTH-1:0],
-    parameter CAPACITY     = 1,
+    parameter DATA_WIDTH   = 1,
+    parameter type TYPE    = logic [DATA_WIDTH-1:0],
+    parameter DEPTH        = 1,
     parameter FALL_THROUGH = 0
 ) (
     input  logic clk,
@@ -46,30 +46,28 @@ module fifo #(
     output TYPE  r_data
 );
 
-    localparam DEPTH = $clog2(CAPACITY);
+    localparam ADDR_WIDTH = $clog2(DEPTH);
 
     // Static checks of paramters
-    initial assert (CAPACITY >= 1) else $fatal(1, "FIFO should have capacity of at least 1");
+    initial begin
+        assert (2 ** ADDR_WIDTH == DEPTH) else $fatal(1, "FIFO depth should be power of 2");
+        assert (DEPTH >= 1) else $fatal(1, "FIFO should have depth of at least 1");
+    end
 
     generate
-        // General case, if CAPACITY is not 1.
-        if (DEPTH != 0) begin
+        // General case, if DEPTH is not 1.
+        if (ADDR_WIDTH != 0) begin
 
             // Ring buffer constructs
-            TYPE buffer [0:CAPACITY];
-            logic [DEPTH-1:0] readptr, readptr_next;
-            logic [DEPTH-1:0] writeptr, writeptr_next;
+            TYPE buffer [0:DEPTH-1];
+            logic [ADDR_WIDTH-1:0] readptr, readptr_next;
+            logic [ADDR_WIDTH-1:0] writeptr, writeptr_next;
             logic empty, empty_next;
             logic full, full_next;
 
             // We cannot accept more writes when full. When empty, we can still accept read if there is a valid write.
             assign w_ready = !full;
             assign r_valid = !empty || (FALL_THROUGH && w_valid);
-
-            // Function to calculate the next locaiton of a ring buffer pointer
-            function automatic logic [DEPTH-1:0] incr(input logic [DEPTH-1:0] ptr);
-                incr = ptr == CAPACITY - 1 ? '0 : ptr + 1;
-            endfunction
 
             // Compute next state
             always_comb begin
@@ -89,8 +87,8 @@ module fifo #(
                 end
                 else begin
                     // Adjust pointers according to handshake signals.
-                    if (r_valid && r_ready) readptr_next = incr(readptr);
-                    if (w_valid && w_ready) writeptr_next = incr(writeptr);
+                    if (r_valid && r_ready) readptr_next = readptr + 1;
+                    if (w_valid && w_ready) writeptr_next = writeptr + 1;
 
                     // If pointers coincide, then determine the full/empty status by the firing transaction. Note that
                     // these checks can be disjoint as we can never read/write simulatenously when the buffer is full.

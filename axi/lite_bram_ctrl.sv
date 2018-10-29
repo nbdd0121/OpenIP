@@ -46,9 +46,9 @@ module axi_lite_bram_ctrl #(
     input  [DATA_WIDTH-1:0]      bram_rddata
 );
 
-    localparam STRB_WIDTH = DATA_WIDTH / 8;
+    localparam STRB_WIDTH        = DATA_WIDTH / 8;
     localparam UNUSED_ADDR_WIDTH = $clog2(STRB_WIDTH);
-    localparam FIFO_CAPACITY = HIGH_PERFORMANCE ? 2 : 1;
+    localparam FIFO_DEPTH        = HIGH_PERFORMANCE ? 2 : 1;
 
     // Static checks of interface matching
     // We currently don't strictly enforce UNUSED_ADDR_WIDTH + BRAM_ADDR_WIDTH == master.ADDR_WIDTH and use truncation
@@ -72,8 +72,8 @@ module axi_lite_bram_ctrl #(
     logic                       aw_ready;
     logic [BRAM_ADDR_WIDTH-1:0] aw_addr;
     fifo #(
-        .WIDTH        (BRAM_ADDR_WIDTH),
-        .CAPACITY     (FIFO_CAPACITY),
+        .DATA_WIDTH   (BRAM_ADDR_WIDTH),
+        .DEPTH        (FIFO_DEPTH),
         .FALL_THROUGH (FALL_THROUGH)
     ) awfifo (
         .clk     (clk),
@@ -91,8 +91,8 @@ module axi_lite_bram_ctrl #(
     logic [DATA_WIDTH-1:0] w_data;
     logic [STRB_WIDTH-1:0] w_strb;
     fifo #(
-        .WIDTH        (DATA_WIDTH + STRB_WIDTH),
-        .CAPACITY     (FIFO_CAPACITY),
+        .DATA_WIDTH   (DATA_WIDTH + STRB_WIDTH),
+        .DEPTH        (FIFO_DEPTH),
         .FALL_THROUGH (FALL_THROUGH)
     ) wfifo (
         .clk     (clk),
@@ -113,8 +113,8 @@ module axi_lite_bram_ctrl #(
     logic                       ar_ready;
     logic [BRAM_ADDR_WIDTH-1:0] ar_addr;
     fifo #(
-        .WIDTH        (BRAM_ADDR_WIDTH),
-        .CAPACITY     (FIFO_CAPACITY),
+        .DATA_WIDTH   (BRAM_ADDR_WIDTH),
+        .DEPTH        (FIFO_DEPTH),
         .FALL_THROUGH (FALL_THROUGH)
     ) arfifo (
         .clk     (clk),
