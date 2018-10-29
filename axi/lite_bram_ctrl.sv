@@ -167,6 +167,9 @@ module axi_lite_bram_ctrl #(
     //
     // Write handling logic
     //
+
+    assign master.b_resp = axi_common::RESP_OKAY;
+
     always_ff @(posedge clk or negedge rstn)
         if (!rstn) begin
             master.b_valid <= 1'b0;
