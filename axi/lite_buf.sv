@@ -33,10 +33,10 @@ module axi_lite_buf #(
         .rstn    (master.rstn),
         .w_valid (master.aw_valid),
         .w_ready (master.aw_ready),
-        .w_data  ('{master.aw_addr, master.aw_prot}),
+        .w_data  (ax_pack_t'{master.aw_addr, master.aw_prot}),
         .r_valid (slave.aw_valid),
         .r_ready (slave.aw_ready),
-        .r_data  ('{slave.aw_addr, slave.aw_prot})
+        .r_data  ({slave.aw_addr, slave.aw_prot})
     );
 
     //
@@ -56,10 +56,10 @@ module axi_lite_buf #(
         .rstn    (master.rstn),
         .w_valid (master.w_valid),
         .w_ready (master.w_ready),
-        .w_data  ('{master.w_data, master.w_strb}),
+        .w_data  (w_pack_t'{master.w_data, master.w_strb}),
         .r_valid (slave.w_valid),
         .r_ready (slave.w_ready),
-        .r_data  ('{slave.w_data, slave.w_strb})
+        .r_data  ({slave.w_data, slave.w_strb})
     );
 
     //
@@ -92,10 +92,10 @@ module axi_lite_buf #(
         .rstn    (master.rstn),
         .w_valid (master.ar_valid),
         .w_ready (master.ar_ready),
-        .w_data  ('{master.ar_addr, master.ar_prot}),
+        .w_data  (ax_pack_t'{master.ar_addr, master.ar_prot}),
         .r_valid (slave.ar_valid),
         .r_ready (slave.ar_ready),
-        .r_data  ('{slave.ar_addr, slave.ar_prot})
+        .r_data  ({slave.ar_addr, slave.ar_prot})
     );
 
     //
@@ -115,10 +115,10 @@ module axi_lite_buf #(
         .rstn    (master.rstn),
         .w_valid (slave.r_valid),
         .w_ready (slave.r_ready),
-        .w_data  ('{slave.r_data, slave.r_resp}),
+        .w_data  (r_pack_t'{slave.r_data, slave.r_resp}),
         .r_valid (master.r_valid),
         .r_ready (master.r_ready),
-        .r_data  ('{master.r_data, master.r_resp})
+        .r_data  ({master.r_data, master.r_resp})
     );
 
 endmodule

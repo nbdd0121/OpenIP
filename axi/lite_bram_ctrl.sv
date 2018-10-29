@@ -105,10 +105,10 @@ module axi_lite_bram_ctrl #(
         .rstn    (rstn),
         .w_valid (master.w_valid),
         .w_ready (master.w_ready),
-        .w_data  ('{master.w_data, master.w_strb}),
+        .w_data  (w_pack_t'{master.w_data, master.w_strb}),
         .r_valid (w_valid),
         .r_ready (w_ready),
-        .r_data  ('{w_data, w_strb})
+        .r_data  ({w_data, w_strb})
     );
 
     //
