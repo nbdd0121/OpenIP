@@ -33,10 +33,10 @@ interface axi_channel #(
     DATA_WIDTH = 64,
     // Due to limitation of SystemVerilog, minimum of *_USER_WIDTH is 1. If they are unused, let optimiser trim them.
     AW_USER_WIDTH = 1,
-    AR_USER_WIDTH = 1,
     W_USER_WIDTH = 1,
-    R_USER_WIDTH = 1,
     B_USER_WIDTH = 1
+    AR_USER_WIDTH = 1,
+    R_USER_WIDTH = 1
 ) (
     // Shared clock and reset signals.
     input logic clk,
