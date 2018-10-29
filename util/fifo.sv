@@ -113,9 +113,10 @@ module fifo #(
                     writeptr <= writeptr_next;
                     empty    <= empty_next;
                     full     <= full_next;
-
-                    if (w_valid && w_ready) buffer[writeptr] <= w_data;
                 end
+
+            always_ff @(posedge clk)
+                if (w_valid && w_ready) buffer[writeptr] <= w_data;
 
         end
         // This is a specialised version targeting buffer of size 1. The general one does not work as pointers do not
@@ -148,8 +149,10 @@ module fifo #(
                 end
                 else begin
                     empty <= empty_next;
-                    if (w_valid && w_ready) buffer <= w_data;
                 end
+
+            always_ff @(posedge clk)
+                if (w_valid && w_ready) buffer <= w_data;
 
         end
     endgenerate
