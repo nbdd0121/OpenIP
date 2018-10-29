@@ -90,8 +90,14 @@ module axi_lite_bram_ctrl #(
     logic                  w_ready;
     logic [DATA_WIDTH-1:0] w_data;
     logic [STRB_WIDTH-1:0] w_strb;
+
+    typedef struct packed {
+        logic [DATA_WIDTH-1:0] data;
+        logic [STRB_WIDTH-1:0] strb;
+    } w_pack_t;
+
     fifo #(
-        .DATA_WIDTH   (DATA_WIDTH + STRB_WIDTH),
+        .TYPE         (w_pack_t),
         .DEPTH        (FIFO_DEPTH),
         .FALL_THROUGH (FALL_THROUGH)
     ) wfifo (
@@ -99,10 +105,10 @@ module axi_lite_bram_ctrl #(
         .rstn    (rstn),
         .w_valid (master.w_valid),
         .w_ready (master.w_ready),
-        .w_data  ({master.w_data, master.w_strb}),
+        .w_data  ('{master.w_data, master.w_strb}),
         .r_valid (w_valid),
         .r_ready (w_ready),
-        .r_data  ({w_data, w_strb})
+        .r_data  ('{w_data, w_strb})
     );
 
     //
