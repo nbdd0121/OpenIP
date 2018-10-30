@@ -49,8 +49,9 @@ module axi_bram_ctrl #(
 );
 
     axi_lite_channel #(
-        .ADDR_WIDTH (ADDR_WIDTH),
-        .DATA_WIDTH (DATA_WIDTH)
+        .ADDR_WIDTH  (ADDR_WIDTH),
+        .DATA_WIDTH  (DATA_WIDTH),
+        .RELAX_CHECK (1'b1)
     ) channel (
         .clk  (master.clk),
         .rstn (master.rstn)

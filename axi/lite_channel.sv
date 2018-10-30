@@ -27,9 +27,13 @@
 import axi_common::*;
 
 // Interface that defines an AXI-Lite channel.
+//
+// RELAX_CHECK: The AXI specification requires DATA_WIDTH to be 32 or 64. Set RELAX_CHECK to 1 will relax this
+//     limitation to be same as AXI. This can be useful for some implementations.
 interface axi_lite_channel #(
-    ADDR_WIDTH = 48,
-    DATA_WIDTH = 64
+    parameter ADDR_WIDTH  = 48,
+    parameter DATA_WIDTH  = 64,
+    parameter RELAX_CHECK = 0
 ) (
     // Shared clock and reset signals.
     input logic clk,
@@ -39,7 +43,17 @@ interface axi_lite_channel #(
     localparam STRB_WIDTH = DATA_WIDTH / 8;
 
     // Static checks of paramters
-    initial assert(DATA_WIDTH == 32 || DATA_WIDTH == 64) else $fatal(1, "DATA_WIDTH must be either 32 or 64");
+    initial begin
+        if (RELAX_CHECK) begin
+            // Data width must be a power of 2.
+            assert((1 << $clog2(DATA_WIDTH)) == DATA_WIDTH) else $fatal(1, "DATA_WIDTH is not power of 2");
+            // Data width must be width [8, 1024]
+            assert(8 <= DATA_WIDTH && DATA_WIDTH <= 1024) else $fatal(1, "DATA_WIDTH is not within range [8, 1024]");
+        end
+        else begin
+            assert(DATA_WIDTH == 32 || DATA_WIDTH == 64) else $fatal(1, "DATA_WIDTH must be either 32 or 64");
+        end
+    end
 
     logic [ADDR_WIDTH-1:0]   aw_addr;
     prot_t                   aw_prot;
