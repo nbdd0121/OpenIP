@@ -27,12 +27,18 @@
 // A general FIFO utility that accepts arbitary types and depth.
 // The interface is defined with handshaking signals instead of traditional empty and full, but you can still use
 // !w_ready as full and !r_valid as empty.
-// FALL_THROUGH can be set to 1 to first-word fall-through.
+//
+// FALL_THROUGH: set to 1 for first-word fall-through.
+// USE_BRAM: set to 1 to instruct the FIFO to use BRAM. Set to 0 will let synthesiser determine whether to use
+//     distributed RAM or registers. Even though synthesiser will usually convert small BRAM into DRAMs, by disable
+//     USE_BRAM you can save the forwarding logic required to achieve write-first. USE_BRAM is by default on if
+//     DEPTH > 16.
 module fifo #(
     parameter DATA_WIDTH   = 1,
     parameter type TYPE    = logic [DATA_WIDTH-1:0],
     parameter DEPTH        = 1,
-    parameter FALL_THROUGH = 0
+    parameter FALL_THROUGH = 0,
+    parameter USE_BRAM     = DEPTH > 16
 ) (
     input  logic clk,
     input  logic rstn,
@@ -56,12 +62,10 @@ module fifo #(
 
     generate
         // General case, if DEPTH is not 1.
-        if (ADDR_WIDTH != 0) begin
+        if (ADDR_WIDTH != 0) begin: mult
 
-            // Ring buffer constructs
-            TYPE buffer [0:DEPTH-1];
-            logic [ADDR_WIDTH-1:0] readptr, readptr_next;
-            logic [ADDR_WIDTH-1:0] writeptr, writeptr_next;
+            logic [ADDR_WIDTH:0] readptr, readptr_next;
+            logic [ADDR_WIDTH:0] writeptr, writeptr_next;
             logic empty, empty_next;
             logic full, full_next;
 
@@ -71,34 +75,14 @@ module fifo #(
 
             // Compute next state
             always_comb begin
-                // Default assignments
-                readptr_next = readptr;
-                writeptr_next = writeptr;
-                empty_next = 1'b0;
-                full_next = 1'b0;
-
-                // Special cases when FIFO is empty and FALL_THROUGH is enabled. In this case we simply connect two
-                // sides together.
-                r_data = (FALL_THROUGH && empty) ? w_data : buffer[readptr];
-
-                // If FALL_THROUGH is enabled and transaction happens, do not move pointers.
-                if (FALL_THROUGH && empty && r_ready && w_valid) begin
-                    empty_next = 1'b1;
-                end
-                else begin
-                    // Adjust pointers according to handshake signals.
-                    if (r_valid && r_ready) readptr_next = readptr + 1;
-                    if (w_valid && w_ready) writeptr_next = writeptr + 1;
-
-                    // If pointers coincide, then determine the full/empty status by the firing transaction. Note that
-                    // these checks can be disjoint as we can never read/write simulatenously when the buffer is full.
-                    if (readptr_next == writeptr_next) begin
-                        empty_next = empty;
-                        full_next = full;
-                        if (r_valid && r_ready) empty_next = 1'b1;
-                        if (w_valid && w_ready) full_next = 1'b1;
-                    end
-                end
+                // Adjust pointers according to handshake signals.
+                readptr_next = r_valid && r_ready ? readptr + 1 : readptr;
+                writeptr_next = w_valid && w_ready ? writeptr + 1 : writeptr;
+                // FIFO is empty if both pointers coincide.
+                empty_next = writeptr_next == readptr_next;
+                // FIFO is full if they are DEPTH distance apart.
+                full_next = writeptr_next[ADDR_WIDTH] != readptr_next[ADDR_WIDTH] &&
+                    writeptr[ADDR_WIDTH-1:0] == readptr_next[ADDR_WIDTH-1:0];
             end
 
             always_ff @(posedge clk or negedge rstn)
@@ -115,13 +99,72 @@ module fifo #(
                     full     <= full_next;
                 end
 
-            always_ff @(posedge clk)
-                if (w_valid && w_ready) buffer[writeptr] <= w_data;
+            TYPE r_data_read;
+            // Special cases when FIFO is empty and FALL_THROUGH is enabled. In this case we simply connect two
+            // sides together. If we need data forwarding do it, otherwise read from BRAM.
+            assign r_data = (FALL_THROUGH && empty) ? w_data : r_data_read;
+
+            if (USE_BRAM) begin: bram
+
+                TYPE  r_data_bram;
+                TYPE  r_data_forwarded;
+                logic r_should_forward;
+
+                // If we need data forwarding do it, otherwise read from BRAM.
+                assign r_data_read = r_should_forward ? r_data_forwarded : r_data_bram;
+
+                // Data-forwarding when read and write conflicts.
+                always_ff @(posedge clk or negedge rstn)
+                    if (!rstn) begin
+                        r_should_forward <= 1'b0;
+                        r_data_forwarded <= TYPE'('x);
+                    end
+                    else begin
+                        // If readptr_next == writeptr, then the data read out next cycle will be invalid (as the BRAM is
+                        // write-first), so we need to forward w_data.
+                        if (w_valid && w_ready && writeptr == readptr_next) begin
+                            r_should_forward <= 1'b1;
+                            r_data_forwarded <= w_data;
+                        end
+                        else begin
+                            r_should_forward <= 1'b0;
+                            r_data_forwarded <= TYPE'('x);
+                        end
+                    end
+
+                // BRAM instantiation for actually storing the data.
+                dual_port_bram #(
+                    .ADDR_WIDTH    (ADDR_WIDTH),
+                    .DATA_WIDTH    ($bits(TYPE)),
+                    .WE_UNIT_WIDTH ($bits(TYPE))
+                ) bram (
+                    .a_clk    (clk),
+                    .a_en     (1'b1),
+                    .a_we     (1'b0),
+                    .a_addr   (readptr_next[ADDR_WIDTH-1:0]),
+                    .a_wrdata ('x),
+                    .a_rddata (r_data_bram),
+                    .b_clk    (clk),
+                    .b_en     (w_valid && w_ready),
+                    .b_addr   (writeptr[ADDR_WIDTH-1:0]),
+                    .b_we     (1'b1),
+                    .b_wrdata (w_data),
+                    .b_rddata ()
+                );
+
+            end else begin: buffer
+
+                TYPE buffer[0:DEPTH];
+                assign r_data_read = buffer[readptr[ADDR_WIDTH-1:0]];
+                always_ff @(posedge clk)
+                    if (w_valid && w_ready) buffer[writeptr[ADDR_WIDTH-1:0]] <= w_data;
+
+            end
 
         end
         // This is a specialised version targeting buffer of size 1. The general one does not work as pointers do not
         // exist in this special case.
-        else begin
+        else begin: one
 
             TYPE buffer;
             // In this special case full and empty are always complements.
@@ -129,19 +172,8 @@ module fifo #(
             assign w_ready = empty;
             assign r_valid = !empty || (FALL_THROUGH && w_valid);
 
-            // Compute next state
-            always_comb begin
-                empty_next = 1'b0;
-                r_data = (FALL_THROUGH && empty) ? w_data : buffer;
-                if (FALL_THROUGH && empty && r_ready && w_valid) begin
-                    empty_next = 1'b1;
-                end
-                else begin
-                    empty_next = empty;
-                    if (r_valid && r_ready) empty_next = 1'b1;
-                    if (w_valid && w_ready) empty_next = 1'b0;
-                end
-            end
+            // Buffer will be empty if: it's empty and both r/w happens, or it's full and the value is read out.
+            assign empty_next = empty ? (w_valid && w_ready == r_valid && r_ready) : r_valid && r_ready;
 
             always_ff @(posedge clk or negedge rstn)
                 if (!rstn) begin
@@ -151,6 +183,8 @@ module fifo #(
                     empty <= empty_next;
                 end
 
+            // In this simple case we don't need forwarding logic any more, we just use registers instead.
+            assign r_data = (FALL_THROUGH && empty) ? w_data : buffer;
             always_ff @(posedge clk)
                 if (w_valid && w_ready) buffer <= w_data;
 
