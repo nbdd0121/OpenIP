@@ -25,38 +25,44 @@
  */
 
 // A general dual-port BRAM utility that is simple enough so that all synthesisers should be able to recognise.
+// Both R/W takes a clock cycle and this is read-first.
+// WE_UNIT_WIDTH: How many bits should form a single write-enable bit. By default it is byte-enable, but you can e.g.
+//     set this to DATA_WIDTH so there is a single write enable.
 module dual_port_bram #(
-    parameter ADDR_WIDTH = 16,
-    parameter DATA_WIDTH = 64,
+    parameter ADDR_WIDTH      = 16,
+    parameter DATA_WIDTH      = 64,
+    parameter WE_UNIT_WIDTH   = 8,
     parameter DEFAULT_CONTENT = ""
 ) (
-    input  logic                      a_clk,
-    input  logic                      a_en,
-    input  logic [(DATA_WIDTH/8)-1:0] a_we,
-    input  logic [ADDR_WIDTH-1:0]     a_addr,
-    input  logic [DATA_WIDTH-1:0]     a_wrdata,
-    output logic [DATA_WIDTH-1:0]     a_rddata,
+    input  logic                                a_clk,
+    input  logic                                a_en,
+    input  logic [DATA_WIDTH/WE_UNIT_WIDTH-1:0] a_we,
+    input  logic [ADDR_WIDTH-1:0]               a_addr,
+    input  logic [DATA_WIDTH-1:0]               a_wrdata,
+    output logic [DATA_WIDTH-1:0]               a_rddata,
 
-    input  logic                      b_clk,
-    input  logic                      b_en,
-    input  logic [(DATA_WIDTH/8)-1:0] b_we,
-    input  logic [ADDR_WIDTH-1:0]     b_addr,
-    input  logic [DATA_WIDTH-1:0]     b_wrdata,
-    output logic [DATA_WIDTH-1:0]     b_rddata
+    input  logic                                b_clk,
+    input  logic                                b_en,
+    input  logic [DATA_WIDTH/WE_UNIT_WIDTH-1:0] b_we,
+    input  logic [ADDR_WIDTH-1:0]               b_addr,
+    input  logic [DATA_WIDTH-1:0]               b_wrdata,
+    output logic [DATA_WIDTH-1:0]               b_rddata
 );
 
-    logic [DATA_WIDTH - 1:0] mem [0:2 ** ADDR_WIDTH - 1];
+    logic [DATA_WIDTH-1:0] mem [0:2**ADDR_WIDTH-1];
 
     always_ff @(posedge a_clk)
         if (a_en) begin
             a_rddata <= mem[a_addr];
-            foreach(a_we[i]) if(a_we[i]) mem[a_addr][i*8+:8] <= a_wrdata[i*8+:8];
+            foreach(a_we[i])
+                if(a_we[i]) mem[a_addr][i*WE_UNIT_WIDTH+:WE_UNIT_WIDTH] <= a_wrdata[i*WE_UNIT_WIDTH+:WE_UNIT_WIDTH];
         end
 
     always_ff @(posedge b_clk)
         if (b_en) begin
             b_rddata <= mem[b_addr];
-            foreach(b_we[i]) if(b_we[i]) mem[b_addr][i*8+:8] <= b_wrdata[i*8+:8];
+            foreach(b_we[i])
+                if(b_we[i]) mem[b_addr][i*WE_UNIT_WIDTH+:WE_UNIT_WIDTH] <= b_wrdata[i*WE_UNIT_WIDTH+:WE_UNIT_WIDTH];
         end
 
     generate
