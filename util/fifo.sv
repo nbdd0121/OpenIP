@@ -29,16 +29,11 @@
 // !w_ready as full and !r_valid as empty.
 //
 // FALL_THROUGH: set to 1 for first-word fall-through.
-// USE_BRAM: set to 1 to instruct the FIFO to use BRAM. Set to 0 will let synthesiser determine whether to use
-//     distributed RAM or registers. Even though synthesiser will usually convert small BRAM into DRAMs, by disable
-//     USE_BRAM you can save the forwarding logic required to achieve write-first. USE_BRAM is by default on if
-//     DEPTH > 16.
 module fifo #(
     parameter DATA_WIDTH   = 1,
     parameter type TYPE    = logic [DATA_WIDTH-1:0],
     parameter DEPTH        = 1,
-    parameter FALL_THROUGH = 0,
-    parameter USE_BRAM     = DEPTH > 16
+    parameter FALL_THROUGH = 0
 ) (
     input  logic clk,
     input  logic rstn,
@@ -104,62 +99,18 @@ module fifo #(
             // sides together. If we need data forwarding do it, otherwise read from BRAM.
             assign r_data = (FALL_THROUGH && empty) ? w_data : r_data_read;
 
-            if (USE_BRAM) begin: bram
-
-                TYPE  r_data_bram;
-                TYPE  r_data_forwarded;
-                logic r_should_forward;
-
-                // If we need data forwarding do it, otherwise read from BRAM.
-                assign r_data_read = r_should_forward ? r_data_forwarded : r_data_bram;
-
-                // Data-forwarding when read and write conflicts.
-                always_ff @(posedge clk or negedge rstn)
-                    if (!rstn) begin
-                        r_should_forward <= 1'b0;
-                        r_data_forwarded <= TYPE'('x);
-                    end
-                    else begin
-                        // If readptr_next == writeptr, then the data read out next cycle will be invalid (as the BRAM is
-                        // write-first), so we need to forward w_data.
-                        if (w_valid && w_ready && writeptr == readptr_next) begin
-                            r_should_forward <= 1'b1;
-                            r_data_forwarded <= w_data;
-                        end
-                        else begin
-                            r_should_forward <= 1'b0;
-                            r_data_forwarded <= TYPE'('x);
-                        end
-                    end
-
-                // BRAM instantiation for actually storing the data.
-                dual_port_bram #(
-                    .ADDR_WIDTH    (ADDR_WIDTH),
-                    .DATA_WIDTH    ($bits(TYPE)),
-                    .WE_UNIT_WIDTH ($bits(TYPE))
-                ) bram (
-                    .a_clk    (clk),
-                    .a_en     (1'b1),
-                    .a_we     (1'b0),
-                    .a_addr   (readptr_next[ADDR_WIDTH-1:0]),
-                    .a_wrdata ('x),
-                    .a_rddata (r_data_bram),
-                    .b_clk    (clk),
-                    .b_en     (w_valid && w_ready),
-                    .b_addr   (writeptr[ADDR_WIDTH-1:0]),
-                    .b_we     (1'b1),
-                    .b_wrdata (w_data),
-                    .b_rddata ()
-                );
-
-            end else begin: buffer
-
-                TYPE buffer[0:DEPTH];
-                assign r_data_read = buffer[readptr[ADDR_WIDTH-1:0]];
-                always_ff @(posedge clk)
-                    if (w_valid && w_ready) buffer[writeptr[ADDR_WIDTH-1:0]] <= w_data;
-
-            end
+            // RAM instantiation for actually storing the data.
+            simple_wr_ram #(
+                .ADDR_WIDTH    (ADDR_WIDTH),
+                .DATA_WIDTH    ($bits(TYPE))
+            ) buffer (
+                .clk      (clk),
+                .a_addr   (readptr_next[ADDR_WIDTH-1:0]),
+                .a_rddata (r_data_read),
+                .b_addr   (writeptr[ADDR_WIDTH-1:0]),
+                .b_we     (w_valid && w_ready),
+                .b_wrdata (w_data)
+            );
 
         end
         // This is a specialised version targeting buffer of size 1. The general one does not work as pointers do not

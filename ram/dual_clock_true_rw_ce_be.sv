@@ -24,29 +24,28 @@
  * DAMAGE.
  */
 
-// A general dual-port BRAM utility that is simple enough so that all synthesisers should be able to recognise.
-// Both R/W takes a clock cycle and this is read-first.
-// WE_UNIT_WIDTH: How many bits should form a single write-enable bit. By default it is byte-enable, but you can e.g.
-//     set this to DATA_WIDTH so there is a single write enable.
-module dual_port_bram #(
+// A dual clock, true dual-port RAM with clock-enable and byte-enable.
+// Both port A and port B are read-first.
+// When port A and port B has address conflict, the behaviour is undefined.
+// Compatiblity warning: This synthesises only one Vivado.
+module dual_clock_true_rw_ce_be_ram #(
     parameter ADDR_WIDTH      = 16,
     parameter DATA_WIDTH      = 64,
-    parameter WE_UNIT_WIDTH   = 8,
     parameter DEFAULT_CONTENT = ""
 ) (
-    input  logic                                a_clk,
-    input  logic                                a_en,
-    input  logic [DATA_WIDTH/WE_UNIT_WIDTH-1:0] a_we,
-    input  logic [ADDR_WIDTH-1:0]               a_addr,
-    input  logic [DATA_WIDTH-1:0]               a_wrdata,
-    output logic [DATA_WIDTH-1:0]               a_rddata,
+    input  logic                    a_clk,
+    input  logic                    a_en,
+    input  logic [DATA_WIDTH/8-1:0] a_we,
+    input  logic [ADDR_WIDTH-1:0]   a_addr,
+    input  logic [DATA_WIDTH-1:0]   a_wrdata,
+    output logic [DATA_WIDTH-1:0]   a_rddata,
 
-    input  logic                                b_clk,
-    input  logic                                b_en,
-    input  logic [DATA_WIDTH/WE_UNIT_WIDTH-1:0] b_we,
-    input  logic [ADDR_WIDTH-1:0]               b_addr,
-    input  logic [DATA_WIDTH-1:0]               b_wrdata,
-    output logic [DATA_WIDTH-1:0]               b_rddata
+    input  logic                    b_clk,
+    input  logic                    b_en,
+    input  logic [DATA_WIDTH/8-1:0] b_we,
+    input  logic [ADDR_WIDTH-1:0]   b_addr,
+    input  logic [DATA_WIDTH-1:0]   b_wrdata,
+    output logic [DATA_WIDTH-1:0]   b_rddata
 );
 
     logic [DATA_WIDTH-1:0] mem [0:2**ADDR_WIDTH-1];
@@ -55,21 +54,18 @@ module dual_port_bram #(
         if (a_en) begin
             a_rddata <= mem[a_addr];
             foreach(a_we[i])
-                if(a_we[i]) mem[a_addr][i*WE_UNIT_WIDTH+:WE_UNIT_WIDTH] <= a_wrdata[i*WE_UNIT_WIDTH+:WE_UNIT_WIDTH];
+                if(a_we[i]) mem[a_addr][i*8+:8] <= a_wrdata[i*8+:8];
         end
 
     always_ff @(posedge b_clk)
         if (b_en) begin
             b_rddata <= mem[b_addr];
             foreach(b_we[i])
-                if(b_we[i]) mem[b_addr][i*WE_UNIT_WIDTH+:WE_UNIT_WIDTH] <= b_wrdata[i*WE_UNIT_WIDTH+:WE_UNIT_WIDTH];
+                if(b_we[i]) mem[b_addr][i*8+:8] <= b_wrdata[i*8+:8];
         end
 
     generate
-        if (DEFAULT_CONTENT)
-            initial $readmemh(DEFAULT_CONTENT, mem);
-        else
-            initial foreach(mem[i]) mem[i] <= {DATA_WIDTH{1'b0}};
+        if (DEFAULT_CONTENT) initial $readmemh(DEFAULT_CONTENT, mem);
     endgenerate
 
 endmodule

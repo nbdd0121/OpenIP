@@ -141,23 +141,17 @@ module async_fifo #(
     //
     // BRAM instantiation for actually storing the data.
     //
-    dual_port_bram #(
+    dual_clock_simple_ram #(
         .ADDR_WIDTH    (ADDR_WIDTH),
-        .DATA_WIDTH    ($bits(TYPE)),
-        .WE_UNIT_WIDTH ($bits(TYPE))
+        .DATA_WIDTH    ($bits(TYPE))
     ) bram (
         .a_clk    (r_clk),
-        .a_en     (1'b1),
-        .a_we     (1'b0),
         .a_addr   (readptr_next[ADDR_WIDTH-1:0]),
-        .a_wrdata ('x),
         .a_rddata (r_data),
         .b_clk    (w_clk),
-        .b_en     (w_valid && w_ready),
-        .b_we     (1'b1),
+        .b_we     (w_valid && w_ready),
         .b_addr   (writeptr[ADDR_WIDTH-1:0]),
-        .b_wrdata (w_data),
-        .b_rddata ()
+        .b_wrdata (w_data)
     );
 
 endmodule
