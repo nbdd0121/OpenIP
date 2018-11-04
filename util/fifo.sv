@@ -106,7 +106,7 @@ module fifo #(
             ) buffer (
                 .clk      (clk),
                 .a_addr   (readptr_next[ADDR_WIDTH-1:0]),
-                .a_rddata (r_data_read),
+                .a_rddata ({r_data_read}),
                 .b_addr   (writeptr[ADDR_WIDTH-1:0]),
                 .b_we     (w_valid && w_ready),
                 .b_wrdata (w_data)
