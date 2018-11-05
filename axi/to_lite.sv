@@ -118,27 +118,41 @@ module axi_to_lite #(
 
     // Whether we are in the process of sending out bursts
     logic                  ar_in_burst;
-    // The latched values from master.
-    logic [2:0]            ar_size;
-    burst_t                ar_burst;
-    prot_t                 ar_prot;
-    // The last address that gets sent out to slave, and the next address.
+    // The address to send to slave, and the next address.
     logic [ADDR_WIDTH-1:0] ar_addr, ar_addr_next;
     // Remaining burst length and its next value.
     logic [7:0]            ar_len, ar_len_next;
-    logic [3:0]            ar_wrap_len;
+    // The latched values from master.
+    prot_t                 ar_prot;
     // When the FIFO to read response channel is full, we need to prepare to stall read address channel.
     // So we have this signal here which will be provided by the FIFO, and we can only proceed if it is asserted.
     logic                  rfifo_ready;
+    // The following registers are latched for calculating the next address.
+    // Variable _switched means its value either comes from aw channel (if ar_in_burst is low) or from register (if
+    // ar_in_burst is high). They are necessary to calculate ar_addr_next. Even though ar_addr is necessary for
+    // calculating the next address, its switched exists already as slave.ar_addr.
+    // Previous version of this code do not have these switched signals, but instead store previous address into
+    // ar_addr and feed ar_addr_next directly into slave.ar_addr, but it seems that Quartus cannot perform flip-flop
+    // migration in this case and causes timing issues.
+    logic [2:0]            ar_size, ar_size_switched;
+    burst_t                ar_burst, ar_burst_switched;
+    logic [3:0]            ar_wrap_len, ar_wrap_len_switched;
+
+    assign ar_size_switched     = ar_in_burst ? ar_size : master.ar_size;
+    assign ar_wrap_len_switched = ar_in_burst ? ar_wrap_len : master.ar_len[3:0];
+    assign ar_burst_switched    = ar_in_burst ? ar_burst : master.ar_burst;
 
     // Calculate the next address and remaining length within the burst.
     generate
         if (ADDR_WIDTH > 12)
-            assign ar_addr_next = {ar_addr[ADDR_WIDTH-1:12], increment(ar_addr[11:0], ar_size, ar_wrap_len, ar_burst)};
+            assign ar_addr_next = {
+                slave.ar_addr[ADDR_WIDTH-1:12],
+                increment(slave.ar_addr[11:0], ar_size_switched, ar_wrap_len_switched, ar_burst_switched)
+            };
         else
-            assign ar_addr_next = increment(ar_addr, ar_size, ar_wrap_len, ar_burst);
+            assign ar_addr_next = increment(slave.ar_addr, ar_size_switched, ar_wrap_len_switched, ar_burst_switched);
     endgenerate
-    assign ar_len_next  = ar_len - 1;
+    assign ar_len_next = ar_len - 1;
 
     always_ff @(posedge clk or negedge rstn) begin
         if (!rstn) begin
@@ -181,7 +195,7 @@ module axi_to_lite #(
                     ar_in_burst <= 1'b1;
                     ar_size     <= master.ar_size;
                     ar_burst    <= master.ar_burst;
-                    ar_addr     <= master.ar_addr;
+                    ar_addr     <= ar_addr_next;
                     ar_prot     <= master.ar_prot;
                     ar_len      <= master.ar_len;
                     ar_wrap_len <= master.ar_len[3:0];
@@ -193,7 +207,7 @@ module axi_to_lite #(
     // If ar_in_burst is not true (and rfifo_ready is asserted), connect master and slave together, otherwise use
     // the bridge's own register.
     // ar_id is reflected via FIFO
-    assign slave.ar_addr   = ar_in_burst ? ar_addr_next : master.ar_addr;
+    assign slave.ar_addr   = ar_in_burst ? ar_addr : master.ar_addr;
     // ar_len is managed by this bridge
     // ar_size is managed by this bridge
     // ar_burst is managed by this bridge
@@ -274,21 +288,28 @@ module axi_to_lite #(
     //
 
     logic                  aw_in_burst;
-    logic [2:0]            aw_size;
-    burst_t                aw_burst;
-    prot_t                 aw_prot;
     logic [ADDR_WIDTH-1:0] aw_addr, aw_addr_next;
     logic [7:0]            aw_len, aw_len_next;
-    logic [3:0]            aw_wrap_len;
+    prot_t                 aw_prot;
     logic                  wfifo_ready;
+    logic [2:0]            aw_size, aw_size_switched;
+    burst_t                aw_burst, aw_burst_switched;
+    logic [3:0]            aw_wrap_len, aw_wrap_len_switched;
+
+    assign aw_size_switched     = aw_in_burst ? aw_size : master.aw_size;
+    assign aw_wrap_len_switched = aw_in_burst ? aw_wrap_len : master.aw_len[3:0];
+    assign aw_burst_switched    = aw_in_burst ? aw_burst : master.aw_burst;
 
     generate
         if (ADDR_WIDTH > 12)
-            assign aw_addr_next = {aw_addr[ADDR_WIDTH-1:12], increment(aw_addr[11:0], aw_size, aw_wrap_len, aw_burst)};
+            assign aw_addr_next = {
+                slave.aw_addr[ADDR_WIDTH-1:12],
+                increment(slave.aw_addr[11:0], aw_size_switched, aw_wrap_len_switched, aw_burst_switched)
+            };
         else
-            assign aw_addr_next = increment(aw_addr, aw_size, aw_wrap_len, aw_burst);
+            assign aw_addr_next = increment(slave.aw_addr, aw_size_switched, aw_wrap_len_switched, aw_burst_switched);
     endgenerate
-    assign aw_len_next  = aw_len - 1;
+    assign aw_len_next = aw_len - 1;
 
     always_ff @(posedge clk or negedge rstn) begin
         if (!rstn) begin
@@ -323,7 +344,7 @@ module axi_to_lite #(
                     aw_in_burst <= 1'b1;
                     aw_size     <= master.aw_size;
                     aw_burst    <= master.aw_burst;
-                    aw_addr     <= master.aw_addr;
+                    aw_addr     <= aw_addr_next;
                     aw_prot     <= master.aw_prot;
                     aw_len      <= master.aw_len;
                     aw_wrap_len <= master.aw_len[3:0];
@@ -332,7 +353,7 @@ module axi_to_lite #(
         end
     end
 
-    assign slave.aw_addr   = aw_in_burst ? aw_addr_next : master.aw_addr;
+    assign slave.aw_addr   = aw_in_burst ? aw_addr : master.aw_addr;
     assign slave.aw_prot   = aw_in_burst ? aw_prot : master.aw_prot;
     assign slave.aw_valid  = aw_in_burst ? 1'b1 : master.aw_valid && rfifo_ready;
     assign master.aw_ready = aw_in_burst ? 1'b0 : slave.aw_ready && rfifo_ready;
