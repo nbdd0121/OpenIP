@@ -124,7 +124,7 @@ module fifo #(
             assign r_valid = !empty || (FALL_THROUGH && w_valid);
 
             // Buffer will be empty if: it's empty and both r/w happens, or it's full and the value is read out.
-            assign empty_next = empty ? (w_valid && w_ready == r_valid && r_ready) : r_valid && r_ready;
+            assign empty_next = empty ? (w_valid && w_ready) == (r_valid && r_ready) : r_valid && r_ready;
 
             always_ff @(posedge clk or negedge rstn)
                 if (!rstn) begin
