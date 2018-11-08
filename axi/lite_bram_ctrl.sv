@@ -62,7 +62,7 @@ module axi_lite_bram_ctrl #(
     logic                       aw_valid;
     logic                       aw_ready;
     logic [BRAM_ADDR_WIDTH-1:0] aw_addr;
-    pipeliner #(
+    regslice #(
         .DATA_WIDTH   (BRAM_ADDR_WIDTH),
         .FORWARD      (1'b0)
     ) awfifo (
@@ -86,7 +86,7 @@ module axi_lite_bram_ctrl #(
         logic [STRB_WIDTH-1:0] strb;
     } w_pack_t;
 
-    pipeliner #(
+    regslice #(
         .TYPE         (w_pack_t),
         .FORWARD      (1'b0)
     ) wfifo (
@@ -103,7 +103,7 @@ module axi_lite_bram_ctrl #(
     logic                       ar_valid;
     logic                       ar_ready;
     logic [BRAM_ADDR_WIDTH-1:0] ar_addr;
-    pipeliner #(
+    regslice #(
         .DATA_WIDTH   (BRAM_ADDR_WIDTH),
         .FORWARD      (1'b0)
     ) arfifo (
@@ -129,7 +129,7 @@ module axi_lite_bram_ctrl #(
     // i.e. b_valid is deasserted (i.e. no data in channel) or b_ready is asserted (i.e. data is going to be consumed).
     assign can_write = !master.b_valid || master.b_ready;
     // A transaction can only take place if both AW and W are ready. This looks scary but is actually allowed since
-    // we have placed pipeliners for both AW and W channels.
+    // we have placed register slices for both AW and W channels.
     assign aw_ready  = w_valid && can_write;
     assign w_ready   = aw_valid && can_write;
     // Write transaction happens if all three conditions are met.

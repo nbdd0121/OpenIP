@@ -32,7 +32,7 @@
 // HIGH_PERFORMANCE: If both FORWARD and REVERSE are set, set HIGH_PERFORMANCE to 1 allows 100% throughput while set
 //     HIGH_PERFORMANCE to 0 will create bubbles and allows 50% throughput only. This parameter is only honoured if
 //     both FORWARD and REVERSE are 1.
-module pipeliner #(
+module regslice #(
     parameter DATA_WIDTH       = 1,
     parameter type TYPE        = logic [DATA_WIDTH-1:0],
     parameter FORWARD          = 1,
@@ -176,7 +176,7 @@ module pipeliner #(
         end
         else begin
 
-            // Direct connection without pipeline stages.
+            // Direct connection without registers.
             assign r_valid = w_valid;
             assign w_ready = r_ready;
             assign r_data  = w_data;

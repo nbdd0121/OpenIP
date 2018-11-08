@@ -441,10 +441,10 @@ module axi_to_lite #(
     assign slave.b_ready  = b_last ? master.b_ready : 1'b1;
 
     //
-    // Pipeliners (FIFOs) for passing information around.
+    // Register slices (FIFOs) for passing information around.
     //
 
-    pipeliner #(
+    regslice #(
         .TYPE             (xact_t),
         .HIGH_PERFORMANCE (HIGH_PERFORMANCE)
     ) rfifo (
@@ -458,7 +458,7 @@ module axi_to_lite #(
         .r_data  (rfifo_xact)
     );
 
-    pipeliner #(
+    regslice #(
         .TYPE             (xact_t),
         .HIGH_PERFORMANCE (HIGH_PERFORMANCE)
     ) wfifo (
