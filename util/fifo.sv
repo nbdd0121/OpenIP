@@ -96,7 +96,7 @@ module fifo #(
 
             TYPE r_data_read;
             // Special cases when FIFO is empty and FALL_THROUGH is enabled. In this case we simply connect two
-            // sides together. If we need data forwarding do it, otherwise read from BRAM.
+            // sides together.
             assign r_data = (FALL_THROUGH && empty) ? w_data : r_data_read;
 
             // RAM instantiation for actually storing the data.
@@ -134,7 +134,6 @@ module fifo #(
                     empty <= empty_next;
                 end
 
-            // In this simple case we don't need forwarding logic any more, we just use registers instead.
             assign r_data = (FALL_THROUGH && empty) ? w_data : buffer;
             always_ff @(posedge clk)
                 if (w_valid && w_ready) buffer <= w_data;
