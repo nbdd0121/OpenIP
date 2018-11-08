@@ -25,7 +25,7 @@
  */
 
 // An utility for time insulation and pipelining support. It can break combinatorial path between valid/ready
-// interface.
+// interface. It is essentially a shallow FIFO.
 //
 // FORWARD: Add register stage between w_valid/data and r_valid/data.
 // REVERSE: Add register stage between r_ready and w_ready.

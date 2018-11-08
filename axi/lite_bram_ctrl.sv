@@ -25,17 +25,9 @@
  */
 
 // A component that converts an AXI-lite interface to a BRAM interface.
-//
-// HIGH_PERFORMANCE: By default this component runs in high performance mode (which means it can respond to one
-//     read/write request every cycle). Set this parameter to 0 will turn off high performance mode, reducing a few
-//     register usages. In many cases it can still respond one request per cycle.
-// FALL_THROUGH: By default this controller uses a fall-through FIFO to minimise latency. If this causes you timing
-//     issue, it can be turned off by setting it to 0.
 module axi_lite_bram_ctrl #(
     parameter DATA_WIDTH       = 64,
-    parameter BRAM_ADDR_WIDTH  = 16,
-    parameter HIGH_PERFORMANCE = 1,
-    parameter FALL_THROUGH     = 1
+    parameter BRAM_ADDR_WIDTH  = 16
 ) (
     axi_lite_channel.slave       master,
 
@@ -48,7 +40,6 @@ module axi_lite_bram_ctrl #(
 
     localparam STRB_WIDTH        = DATA_WIDTH / 8;
     localparam UNUSED_ADDR_WIDTH = $clog2(STRB_WIDTH);
-    localparam FIFO_DEPTH        = HIGH_PERFORMANCE ? 2 : 1;
 
     // Static checks of interface matching
     // We currently don't strictly enforce UNUSED_ADDR_WIDTH + BRAM_ADDR_WIDTH == master.ADDR_WIDTH and use truncation
@@ -65,16 +56,15 @@ module axi_lite_bram_ctrl #(
     assign rstn = master.rstn;
 
     //
-    // FIFOs necessary to break combinatorial path between AW, W and B channels.
+    // Break combinatorial path between ready signals.
     //
 
     logic                       aw_valid;
     logic                       aw_ready;
     logic [BRAM_ADDR_WIDTH-1:0] aw_addr;
-    fifo #(
+    pipeliner #(
         .DATA_WIDTH   (BRAM_ADDR_WIDTH),
-        .DEPTH        (FIFO_DEPTH),
-        .FALL_THROUGH (FALL_THROUGH)
+        .FORWARD      (1'b0)
     ) awfifo (
         .clk     (clk),
         .rstn    (rstn),
@@ -96,10 +86,9 @@ module axi_lite_bram_ctrl #(
         logic [STRB_WIDTH-1:0] strb;
     } w_pack_t;
 
-    fifo #(
+    pipeliner #(
         .TYPE         (w_pack_t),
-        .DEPTH        (FIFO_DEPTH),
-        .FALL_THROUGH (FALL_THROUGH)
+        .FORWARD      (1'b0)
     ) wfifo (
         .clk     (clk),
         .rstn    (rstn),
@@ -111,17 +100,12 @@ module axi_lite_bram_ctrl #(
         .r_data  ({w_data, w_strb})
     );
 
-    //
-    // FIFO necessary to break combinatorial path between AR and R channels.
-    //
-
     logic                       ar_valid;
     logic                       ar_ready;
     logic [BRAM_ADDR_WIDTH-1:0] ar_addr;
-    fifo #(
+    pipeliner #(
         .DATA_WIDTH   (BRAM_ADDR_WIDTH),
-        .DEPTH        (FIFO_DEPTH),
-        .FALL_THROUGH (FALL_THROUGH)
+        .FORWARD      (1'b0)
     ) arfifo (
         .clk     (clk),
         .rstn    (rstn),
@@ -145,7 +129,7 @@ module axi_lite_bram_ctrl #(
     // i.e. b_valid is deasserted (i.e. no data in channel) or b_ready is asserted (i.e. data is going to be consumed).
     assign can_write = !master.b_valid || master.b_ready;
     // A transaction can only take place if both AW and W are ready. This looks scary but is actually allowed since
-    // we have placed FIFOs for both AW and W channels.
+    // we have placed pipeliners for both AW and W channels.
     assign aw_ready  = w_valid && can_write;
     assign w_ready   = aw_valid && can_write;
     // Write transaction happens if all three conditions are met.

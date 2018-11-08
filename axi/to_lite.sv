@@ -29,8 +29,8 @@ import axi_common::*;
 // A bridge that connects an AXI master with an AXI-Lite slave. It requires address and data width to match and does
 // not perform width conversion. It will convert bursts into multiple transactions.
 //
-// HIGH_PERFORMANCE: By default this component runs in high performance mode (which means it can initiate a read/write
-//     burst every cycle). Set this parameter to 0 will turn off high performance mode, reducing a few register usages.
+// HIGH_PERFORMANCE: If turned on, it can initiate a read/write request every cycle. Turn if off will reduce a few
+//     register usages. If can be turned off with marginal performance impact if transactions are in large bursts.
 module axi_to_lite #(
     parameter ID_WIDTH         = 8,
     parameter ADDR_WIDTH       = 48,
@@ -39,8 +39,6 @@ module axi_to_lite #(
     axi_channel.slave       master,
     axi_lite_channel.master slave
 );
-
-    localparam FIFO_DEPTH = HIGH_PERFORMANCE ? 2 : 1;
 
     // Static checks of interface matching
     initial
@@ -443,12 +441,12 @@ module axi_to_lite #(
     assign slave.b_ready  = b_last ? master.b_ready : 1'b1;
 
     //
-    // FIFOs for passing information around
+    // Pipeliners (FIFOs) for passing information around.
     //
 
-    fifo #(
-        .TYPE  (xact_t),
-        .DEPTH (FIFO_DEPTH)
+    pipeliner #(
+        .TYPE             (xact_t),
+        .HIGH_PERFORMANCE (HIGH_PERFORMANCE)
     ) rfifo (
         .clk     (clk),
         .rstn    (rstn),
@@ -460,9 +458,9 @@ module axi_to_lite #(
         .r_data  (rfifo_xact)
     );
 
-    fifo #(
-        .TYPE  (xact_t),
-        .DEPTH (FIFO_DEPTH)
+    pipeliner #(
+        .TYPE             (xact_t),
+        .HIGH_PERFORMANCE (HIGH_PERFORMANCE)
     ) wfifo (
         .clk     (clk),
         .rstn    (rstn),
