@@ -58,20 +58,7 @@ module axi_buf #(
     // AW channel
     //
 
-    typedef struct packed {
-        logic [ID_WIDTH-1:0]      id;
-        logic [ADDR_WIDTH-1:0]    addr;
-        logic [7:0]               len;
-        logic [2:0]               size;
-        burst_t                   burst;
-        logic                     lock;
-        cache_t                   cache;
-        prot_t                    prot;
-        logic [3:0]               qos;
-        logic [3:0]               region;
-        logic [AW_USER_WIDTH-1:0] user;
-    } aw_pack_t;
-
+    typedef master.aw_pack_t aw_pack_t;
     fifo #(
         .TYPE  (aw_pack_t),
         .DEPTH (DEPTH)
@@ -96,13 +83,7 @@ module axi_buf #(
     // W channel
     //
 
-    typedef struct packed {
-        logic [DATA_WIDTH-1:0]    data;
-        logic [STRB_WIDTH-1:0]    strb;
-        logic                     last;
-        logic [W_USER_WIDTH-1:0]  user;
-    } w_pack_t;
-
+    typedef master.w_pack_t w_pack_t;
     fifo #(
         .TYPE  (w_pack_t),
         .DEPTH (DEPTH)
@@ -121,10 +102,7 @@ module axi_buf #(
     // B channel
     //
 
-    typedef struct packed {
-        logic [ID_WIDTH-1:0]      user;
-    } b_pack_t;
-
+    typedef master.b_pack_t b_pack_t;
     fifo #(
         .TYPE  (b_pack_t),
         .DEPTH (DEPTH)
@@ -133,30 +111,17 @@ module axi_buf #(
         .rstn    (master.rstn),
         .w_valid (slave.b_valid),
         .w_ready (slave.b_ready),
-        .w_data  (b_pack_t'{slave.b_id, slave.b_resp}),
+        .w_data  (b_pack_t'{slave.b_id, slave.b_resp, slave.b_user}),
         .r_valid (master.b_valid),
         .r_ready (master.b_ready),
-        .r_data  ({master.b_id, master.b_resp})
+        .r_data  ({master.b_id, master.b_resp, master.b_user})
     );
 
     //
     // AR channel
     //
 
-    typedef struct packed {
-        logic [ID_WIDTH-1:0]      id;
-        logic [ADDR_WIDTH-1:0]    addr;
-        logic [7:0]               len;
-        logic [2:0]               size;
-        burst_t                   burst;
-        logic                     lock;
-        cache_t                   cache;
-        prot_t                    prot;
-        logic [3:0]               qos;
-        logic [3:0]               region;
-        logic [AR_USER_WIDTH-1:0] user;
-    } ar_pack_t;
-
+    typedef master.ar_pack_t ar_pack_t;
     fifo #(
         .TYPE  (ar_pack_t),
         .DEPTH (DEPTH)
@@ -181,14 +146,7 @@ module axi_buf #(
     // R channel
     //
 
-    typedef struct packed {
-        logic [ID_WIDTH-1:0]     id;
-        logic [DATA_WIDTH-1:0]   data;
-        resp_t                   resp;
-        logic                    last;
-        logic [R_USER_WIDTH-1:0] user;
-    } r_pack_t;
-
+    typedef master.r_pack_t r_pack_t;
     fifo #(
         .TYPE  (r_pack_t),
         .DEPTH (DEPTH)
