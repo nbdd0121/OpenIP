@@ -26,32 +26,22 @@
 
 // A buffer for AXI interface.
 module axi_buf #(
-    parameter DEPTH         = 1,
-    parameter ID_WIDTH      = 8,
-    parameter ADDR_WIDTH    = 48,
-    parameter DATA_WIDTH    = 64,
-    parameter AW_USER_WIDTH = 1,
-    parameter AR_USER_WIDTH = 1,
-    parameter W_USER_WIDTH  = 1,
-    parameter R_USER_WIDTH  = 1,
-    parameter B_USER_WIDTH  = 1
+    parameter DEPTH = 1
 ) (
     axi_channel.slave  master,
     axi_channel.master slave
 );
 
-    localparam STRB_WIDTH = DATA_WIDTH / 8;
-
     // Static checks of interface matching
     initial
-        assert (ID_WIDTH == master.ID_WIDTH && ID_WIDTH == slave.ID_WIDTH &&
-                ADDR_WIDTH == master.ADDR_WIDTH && ADDR_WIDTH == slave.ADDR_WIDTH &&
-                DATA_WIDTH == master.DATA_WIDTH && DATA_WIDTH == slave.DATA_WIDTH &&
-                AW_USER_WIDTH == master.AW_USER_WIDTH && AW_USER_WIDTH == slave.AW_USER_WIDTH &&
-                AR_USER_WIDTH == master.AR_USER_WIDTH && AR_USER_WIDTH == slave.AR_USER_WIDTH &&
-                W_USER_WIDTH == master.W_USER_WIDTH && W_USER_WIDTH == slave.W_USER_WIDTH &&
-                R_USER_WIDTH == master.R_USER_WIDTH && R_USER_WIDTH == slave.R_USER_WIDTH &&
-                B_USER_WIDTH == master.B_USER_WIDTH && B_USER_WIDTH == slave.B_USER_WIDTH)
+        assert (master.ID_WIDTH == slave.ID_WIDTH &&
+                master.ADDR_WIDTH == slave.ADDR_WIDTH &&
+                master.DATA_WIDTH == slave.DATA_WIDTH &&
+                master.AW_USER_WIDTH == slave.AW_USER_WIDTH &&
+                master.W_USER_WIDTH == slave.W_USER_WIDTH &&
+                master.B_USER_WIDTH == slave.B_USER_WIDTH &&
+                master.AR_USER_WIDTH == slave.AR_USER_WIDTH &&
+                master.R_USER_WIDTH == slave.R_USER_WIDTH)
         else $fatal(1, "Parameter mismatch");
 
     //
