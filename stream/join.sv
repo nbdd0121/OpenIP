@@ -31,12 +31,11 @@ module stream_join (
 );
 
     // Static checks of interface matching
-    initial
-        assert(master.ID_WIDTH == slave.ID_WIDTH &&
-               master.DATA_WIDTH == slave.DATA_WIDTH &&
-               master.DEST_WIDTH == slave.DEST_WIDTH &&
-               master.USER_WIDTH == slave.USER_WIDTH)
-        else $fatal(1, "Interface parameters mismatch");
+    if (master.ID_WIDTH != slave.ID_WIDTH ||
+        master.DATA_WIDTH != slave.DATA_WIDTH ||
+        master.DEST_WIDTH != slave.DEST_WIDTH ||
+        master.USER_WIDTH != slave.USER_WIDTH)
+        $fatal(1, "Interface parameters mismatch");
 
     assign slave.t_id     = master.t_id;
     assign slave.t_dest   = master.t_dest;

@@ -31,10 +31,9 @@ module axi_lite_join (
 );
 
     // Static checks of interface matching
-    initial
-        assert(master.ADDR_WIDTH == slave.ADDR_WIDTH &&
-               master.DATA_WIDTH == slave.DATA_WIDTH)
-        else $fatal(1, "Interface parameters mismatch");
+    if (master.ADDR_WIDTH != slave.ADDR_WIDTH ||
+        master.DATA_WIDTH != slave.DATA_WIDTH)
+        $fatal(1, "Interface parameters mismatch");
 
     assign slave.aw_addr   = master.aw_addr;
     assign slave.aw_prot   = master.aw_prot;

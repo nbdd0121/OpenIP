@@ -35,7 +35,7 @@ module axi_dummy_slave #(
 );
 
     // Static checks of parameters.
-    initial assert(DATA_WIDTH == master.DATA_WIDTH) else $fatal(1, "DATA_WIDTH mismatch");
+    if (DATA_WIDTH != master.DATA_WIDTH) $fatal(1, "DATA_WIDTH mismatch");
 
     // Extract clk and rstn signals from interfaces
     logic clk;

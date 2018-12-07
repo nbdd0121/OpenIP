@@ -30,17 +30,20 @@ module axi_join (
     axi_channel.master slave
 );
 
-    // Static checks of interface matching
-    initial
-        assert(master.ID_WIDTH   == slave.ID_WIDTH &&
-               master.ADDR_WIDTH == slave.ADDR_WIDTH &&
-               master.DATA_WIDTH == slave.DATA_WIDTH &&
-               master.AW_USER_WIDTH == slave.AW_USER_WIDTH &&
-               master.W_USER_WIDTH == slave.W_USER_WIDTH &&
-               master.B_USER_WIDTH == slave.B_USER_WIDTH &&
-               master.AR_USER_WIDTH == slave.AR_USER_WIDTH &&
-               master.R_USER_WIDTH == slave.R_USER_WIDTH)
-        else $fatal(1, "Interface parameters mismatch");
+    // Static checks of interface matching.
+    // Normally parameters should match exactly, but the following operations are legal:
+    // * Widen ID_WIDTH
+    // * Widen ADDR_WIDTH
+    // * Widen DATA_WIDTH
+    if (master.ID_WIDTH > slave.ID_WIDTH ||
+        master.ADDR_WIDTH > slave.ADDR_WIDTH ||
+        master.DATA_WIDTH > slave.DATA_WIDTH ||
+        master.AW_USER_WIDTH != slave.AW_USER_WIDTH ||
+        master.W_USER_WIDTH != slave.W_USER_WIDTH ||
+        master.B_USER_WIDTH != slave.B_USER_WIDTH ||
+        master.AR_USER_WIDTH != slave.AR_USER_WIDTH ||
+        master.R_USER_WIDTH != slave.R_USER_WIDTH)
+        $fatal(1, "Interface parameters mismatch");
 
     assign slave.aw_id     = master.aw_id;
     assign slave.aw_addr   = master.aw_addr;
