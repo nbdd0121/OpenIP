@@ -44,10 +44,9 @@ module axi_lite_bram_ctrl #(
     // Static checks of interface matching
     // We currently don't strictly enforce UNUSED_ADDR_WIDTH + BRAM_ADDR_WIDTH == master.ADDR_WIDTH and use truncation
     // behaviour instead.
-    initial
-        assert(DATA_WIDTH == master.DATA_WIDTH &&
-               UNUSED_ADDR_WIDTH + BRAM_ADDR_WIDTH <= master.ADDR_WIDTH)
-        else $fatal(1, "ADDR_WIDTH and/or DATA_WIDTH mismatch");
+    if (DATA_WIDTH != master.DATA_WIDTH ||
+        UNUSED_ADDR_WIDTH + BRAM_ADDR_WIDTH > master.ADDR_WIDTH)
+        $fatal(1, "ADDR_WIDTH and/or DATA_WIDTH mismatch");
 
     // Extract clk and rstn signals from interfaces
     logic clk;

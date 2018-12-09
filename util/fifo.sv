@@ -50,95 +50,91 @@ module fifo #(
     localparam ADDR_WIDTH = $clog2(DEPTH);
 
     // Static checks of paramters
-    initial begin
-        assert (2 ** ADDR_WIDTH == DEPTH) else $fatal(1, "FIFO depth should be power of 2");
-        assert (DEPTH >= 1) else $fatal(1, "FIFO should have depth of at least 1");
-    end
+    if (2 ** ADDR_WIDTH != DEPTH) $fatal(1, "FIFO depth should be power of 2");
+    if (DEPTH < 1) $fatal(1, "FIFO should have depth of at least 1");
 
-    generate
-        // General case, if DEPTH is not 1.
-        if (ADDR_WIDTH != 0) begin: mult
+    // General case, if DEPTH is not 1.
+    if (ADDR_WIDTH != 0) begin: mult
 
-            logic [ADDR_WIDTH:0] readptr, readptr_next;
-            logic [ADDR_WIDTH:0] writeptr, writeptr_next;
-            logic empty, empty_next;
-            logic full, full_next;
+        logic [ADDR_WIDTH:0] readptr, readptr_next;
+        logic [ADDR_WIDTH:0] writeptr, writeptr_next;
+        logic empty, empty_next;
+        logic full, full_next;
 
-            // We cannot accept more writes when full. When empty, we can still accept read if there is a valid write.
-            assign w_ready = !full;
-            assign r_valid = !empty || (FALL_THROUGH && w_valid);
+        // We cannot accept more writes when full. When empty, we can still accept read if there is a valid write.
+        assign w_ready = !full;
+        assign r_valid = !empty || (FALL_THROUGH && w_valid);
 
-            // Compute next state
-            always_comb begin
-                // Adjust pointers according to handshake signals.
-                readptr_next = r_valid && r_ready ? readptr + 1 : readptr;
-                writeptr_next = w_valid && w_ready ? writeptr + 1 : writeptr;
-                // FIFO is empty if both pointers coincide.
-                empty_next = writeptr_next == readptr_next;
-                // FIFO is full if they are DEPTH distance apart.
-                full_next = writeptr_next[ADDR_WIDTH] != readptr_next[ADDR_WIDTH] &&
-                    writeptr[ADDR_WIDTH-1:0] == readptr_next[ADDR_WIDTH-1:0];
+        // Compute next state
+        always_comb begin
+            // Adjust pointers according to handshake signals.
+            readptr_next = r_valid && r_ready ? readptr + 1 : readptr;
+            writeptr_next = w_valid && w_ready ? writeptr + 1 : writeptr;
+            // FIFO is empty if both pointers coincide.
+            empty_next = writeptr_next == readptr_next;
+            // FIFO is full if they are DEPTH distance apart.
+            full_next = writeptr_next[ADDR_WIDTH] != readptr_next[ADDR_WIDTH] &&
+                writeptr[ADDR_WIDTH-1:0] == readptr_next[ADDR_WIDTH-1:0];
+        end
+
+        always_ff @(posedge clk or negedge rstn)
+            if (!rstn) begin
+                readptr  <= 0;
+                writeptr <= 0;
+                full     <= 1'b0;
+                empty    <= 1'b1;
+            end
+            else begin
+                readptr  <= readptr_next;
+                writeptr <= writeptr_next;
+                empty    <= empty_next;
+                full     <= full_next;
             end
 
-            always_ff @(posedge clk or negedge rstn)
-                if (!rstn) begin
-                    readptr  <= 0;
-                    writeptr <= 0;
-                    full     <= 1'b0;
-                    empty    <= 1'b1;
-                end
-                else begin
-                    readptr  <= readptr_next;
-                    writeptr <= writeptr_next;
-                    empty    <= empty_next;
-                    full     <= full_next;
-                end
+        TYPE r_data_read;
+        // Special cases when FIFO is empty and FALL_THROUGH is enabled. In this case we simply connect two
+        // sides together.
+        assign r_data = (FALL_THROUGH && empty) ? w_data : r_data_read;
 
-            TYPE r_data_read;
-            // Special cases when FIFO is empty and FALL_THROUGH is enabled. In this case we simply connect two
-            // sides together.
-            assign r_data = (FALL_THROUGH && empty) ? w_data : r_data_read;
+        // RAM instantiation for actually storing the data.
+        simple_wr_ram #(
+            .ADDR_WIDTH    (ADDR_WIDTH),
+            .DATA_WIDTH    ($bits(TYPE))
+        ) buffer (
+            .clk      (clk),
+            .a_addr   (readptr_next[ADDR_WIDTH-1:0]),
+            .a_rddata ({r_data_read}),
+            .b_addr   (writeptr[ADDR_WIDTH-1:0]),
+            .b_we     (w_valid && w_ready),
+            .b_wrdata (w_data)
+        );
 
-            // RAM instantiation for actually storing the data.
-            simple_wr_ram #(
-                .ADDR_WIDTH    (ADDR_WIDTH),
-                .DATA_WIDTH    ($bits(TYPE))
-            ) buffer (
-                .clk      (clk),
-                .a_addr   (readptr_next[ADDR_WIDTH-1:0]),
-                .a_rddata ({r_data_read}),
-                .b_addr   (writeptr[ADDR_WIDTH-1:0]),
-                .b_we     (w_valid && w_ready),
-                .b_wrdata (w_data)
-            );
+    end
+    // This is a specialised version targeting buffer of size 1. The general one does not work as pointers do not
+    // exist in this special case.
+    else begin: one
 
-        end
-        // This is a specialised version targeting buffer of size 1. The general one does not work as pointers do not
-        // exist in this special case.
-        else begin: one
+        TYPE buffer;
+        // In this special case full and empty are always complements.
+        logic empty, empty_next;
+        assign w_ready = empty;
+        assign r_valid = !empty || (FALL_THROUGH && w_valid);
 
-            TYPE buffer;
-            // In this special case full and empty are always complements.
-            logic empty, empty_next;
-            assign w_ready = empty;
-            assign r_valid = !empty || (FALL_THROUGH && w_valid);
+        // Buffer will be empty if: it's empty and both r/w happens, or it's full and the value is read out.
+        assign empty_next = empty ? (w_valid && w_ready) == (r_valid && r_ready) : r_valid && r_ready;
 
-            // Buffer will be empty if: it's empty and both r/w happens, or it's full and the value is read out.
-            assign empty_next = empty ? (w_valid && w_ready) == (r_valid && r_ready) : r_valid && r_ready;
+        always_ff @(posedge clk or negedge rstn)
+            if (!rstn) begin
+                empty <= 1'b1;
+            end
+            else begin
+                empty <= empty_next;
+            end
 
-            always_ff @(posedge clk or negedge rstn)
-                if (!rstn) begin
-                    empty <= 1'b1;
-                end
-                else begin
-                    empty <= empty_next;
-                end
+        assign r_data = (FALL_THROUGH && empty) ? w_data : buffer;
+        always_ff @(posedge clk)
+            if (w_valid && w_ready) buffer <= w_data;
 
-            assign r_data = (FALL_THROUGH && empty) ? w_data : buffer;
-            always_ff @(posedge clk)
-                if (w_valid && w_ready) buffer <= w_data;
-
-        end
-    endgenerate
+    end
 
 endmodule

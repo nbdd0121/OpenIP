@@ -46,10 +46,8 @@ module async_fifo #(
     localparam ADDR_WIDTH = $clog2(DEPTH);
 
     // Static checks of paramters
-    initial begin
-        assert (2 ** ADDR_WIDTH == DEPTH) else $fatal(1, "FIFO depth should be power of 2");
-        assert (DEPTH >= 2) else $fatal(1, "FIFO should have depth of at least 2");
-    end
+    if (2 ** ADDR_WIDTH != DEPTH) $fatal(1, "FIFO depth should be power of 2");
+    if (DEPTH < 2) $fatal(1, "FIFO should have depth of at least 2");
 
     // High-level description of how this module works:
     // This is an asynchronous FIFO design. It implements paper "Simulation and Synthesis Techniques for Asynchronous

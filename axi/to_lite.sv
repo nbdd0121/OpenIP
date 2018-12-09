@@ -41,10 +41,9 @@ module axi_to_lite #(
 );
 
     // Static checks of interface matching
-    initial
-        assert(ID_WIDTH == master.ID_WIDTH && master.DATA_WIDTH == slave.DATA_WIDTH &&
-               ADDR_WIDTH ==  master.ADDR_WIDTH && ADDR_WIDTH == slave.ADDR_WIDTH)
-        else $fatal(1, "ID_WIDTH, ADDR_WIDTH and/or DATA_WIDTH mismatch");
+    if (ID_WIDTH != master.ID_WIDTH || master.DATA_WIDTH != slave.DATA_WIDTH ||
+        ADDR_WIDTH !=  master.ADDR_WIDTH || ADDR_WIDTH != slave.ADDR_WIDTH)
+        $fatal(1, "ID_WIDTH, ADDR_WIDTH and/or DATA_WIDTH mismatch");
 
     // Extract clk and rstn signals from interfaces
     logic clk;

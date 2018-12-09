@@ -37,10 +37,9 @@ module axi_lite_buf #(
     localparam STRB_WIDTH = DATA_WIDTH / 8;
 
     // Static checks of interface matching
-    initial
-        assert (ADDR_WIDTH == master.ADDR_WIDTH && ADDR_WIDTH == slave.ADDR_WIDTH &&
-                DATA_WIDTH == master.DATA_WIDTH && DATA_WIDTH == slave.DATA_WIDTH)
-        else $fatal(1, "Parameter mismatch");
+    if (ADDR_WIDTH != master.ADDR_WIDTH || ADDR_WIDTH != slave.ADDR_WIDTH ||
+        DATA_WIDTH != master.DATA_WIDTH || DATA_WIDTH != slave.DATA_WIDTH)
+        $fatal(1, "Parameter mismatch");
 
     //
     // AW channel

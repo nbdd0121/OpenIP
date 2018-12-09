@@ -39,12 +39,11 @@ module stream_buf #(
     localparam STRB_WIDTH = DATA_WIDTH / 8;
 
     // Static checks of interface matching
-    initial
-        assert (ID_WIDTH == master.ID_WIDTH && ID_WIDTH == slave.ID_WIDTH &&
-                DATA_WIDTH == master.DATA_WIDTH && DATA_WIDTH == slave.DATA_WIDTH &&
-                DEST_WIDTH == master.DEST_WIDTH && DEST_WIDTH == slave.DEST_WIDTH &&
-                USER_WIDTH == master.USER_WIDTH && USER_WIDTH == slave.USER_WIDTH)
-        else $fatal(1, "Parameter mismatch");
+    if (ID_WIDTH != master.ID_WIDTH || ID_WIDTH != slave.ID_WIDTH ||
+        DATA_WIDTH != master.DATA_WIDTH || DATA_WIDTH != slave.DATA_WIDTH ||
+        DEST_WIDTH != master.DEST_WIDTH || DEST_WIDTH != slave.DEST_WIDTH ||
+        USER_WIDTH != master.USER_WIDTH || USER_WIDTH != slave.USER_WIDTH)
+        $fatal(1, "Parameter mismatch");
 
     typedef struct packed {
         logic [ID_WIDTH-1:0]   id;

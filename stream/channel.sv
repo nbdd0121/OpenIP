@@ -39,7 +39,7 @@ interface stream_channel #(
     localparam STRB_WIDTH = DATA_WIDTH / 8;
 
     // Static checks of paramters
-    initial assert (STRB_WIDTH * 8 == DATA_WIDTH) else $fatal(1, "DATA_WIDTH must be a multiple of 8");
+    if (STRB_WIDTH * 8 != DATA_WIDTH) $fatal(1, "DATA_WIDTH must be a multiple of 8");
 
     logic [ID_WIDTH-1:0]   t_id;
     logic [DEST_WIDTH-1:0] t_dest;
