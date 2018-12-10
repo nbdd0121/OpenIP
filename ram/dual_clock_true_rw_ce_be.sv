@@ -64,8 +64,6 @@ module dual_clock_true_rw_ce_be_ram #(
                 if(b_we[i]) mem[b_addr][i*8+:8] <= b_wrdata[i*8+:8];
         end
 
-    generate
-        if (DEFAULT_CONTENT) initial $readmemh(DEFAULT_CONTENT, mem);
-    endgenerate
+    if (DEFAULT_CONTENT) initial $readmemh(DEFAULT_CONTENT, mem);
 
 endmodule

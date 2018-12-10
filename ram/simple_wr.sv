@@ -51,8 +51,6 @@ module simple_wr_ram #(
 
     assign a_rddata = mem[raddr];
 
-    generate
-        if (DEFAULT_CONTENT) initial $readmemh(DEFAULT_CONTENT, mem);
-    endgenerate
+    if (DEFAULT_CONTENT) initial $readmemh(DEFAULT_CONTENT, mem);
 
 endmodule

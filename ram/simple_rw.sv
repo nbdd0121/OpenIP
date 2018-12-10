@@ -48,8 +48,6 @@ module simple_rw_ram #(
         if (b_we) mem[b_addr] <= b_wrdata;
     end
 
-    generate
-        if (DEFAULT_CONTENT) initial $readmemh(DEFAULT_CONTENT, mem);
-    endgenerate
+    if (DEFAULT_CONTENT) initial $readmemh(DEFAULT_CONTENT, mem);
 
 endmodule

@@ -140,15 +140,13 @@ module axi_to_lite #(
     assign ar_burst_switched    = ar_in_burst ? ar_burst : master.ar_burst;
 
     // Calculate the next address and remaining length within the burst.
-    generate
-        if (ADDR_WIDTH > 12)
-            assign ar_addr_next = {
-                slave.ar_addr[ADDR_WIDTH-1:12],
-                increment(slave.ar_addr[11:0], ar_size_switched, ar_wrap_len_switched, ar_burst_switched)
-            };
-        else
-            assign ar_addr_next = increment(slave.ar_addr, ar_size_switched, ar_wrap_len_switched, ar_burst_switched);
-    endgenerate
+    if (ADDR_WIDTH > 12)
+        assign ar_addr_next = {
+            slave.ar_addr[ADDR_WIDTH-1:12],
+            increment(slave.ar_addr[11:0], ar_size_switched, ar_wrap_len_switched, ar_burst_switched)
+        };
+    else
+        assign ar_addr_next = increment(slave.ar_addr, ar_size_switched, ar_wrap_len_switched, ar_burst_switched);
     assign ar_len_next = ar_len - 1;
 
     always_ff @(posedge clk or negedge rstn) begin
@@ -297,15 +295,13 @@ module axi_to_lite #(
     assign aw_wrap_len_switched = aw_in_burst ? aw_wrap_len : master.aw_len[3:0];
     assign aw_burst_switched    = aw_in_burst ? aw_burst : master.aw_burst;
 
-    generate
-        if (ADDR_WIDTH > 12)
-            assign aw_addr_next = {
-                slave.aw_addr[ADDR_WIDTH-1:12],
-                increment(slave.aw_addr[11:0], aw_size_switched, aw_wrap_len_switched, aw_burst_switched)
-            };
-        else
-            assign aw_addr_next = increment(slave.aw_addr, aw_size_switched, aw_wrap_len_switched, aw_burst_switched);
-    endgenerate
+    if (ADDR_WIDTH > 12)
+        assign aw_addr_next = {
+            slave.aw_addr[ADDR_WIDTH-1:12],
+            increment(slave.aw_addr[11:0], aw_size_switched, aw_wrap_len_switched, aw_burst_switched)
+        };
+    else
+        assign aw_addr_next = increment(slave.aw_addr, aw_size_switched, aw_wrap_len_switched, aw_burst_switched);
     assign aw_len_next = aw_len - 1;
 
     always_ff @(posedge clk or negedge rstn) begin
