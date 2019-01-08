@@ -24,6 +24,8 @@
  * DAMAGE.
  */
 
+import axi_common::*;
+
 // A buffer for AXI-Lite interface.
 module axi_lite_buf #(
     parameter DEPTH         = 1,
