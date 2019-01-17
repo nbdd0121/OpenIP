@@ -26,8 +26,8 @@
 
 // Interface that defines an AXI-Stream channel.
 interface stream_channel #(
+    parameter DATA_WIDTH,
     parameter ID_WIDTH   = 1,
-    parameter DATA_WIDTH = 64,
     parameter DEST_WIDTH = 1,
     parameter USER_WIDTH = 1
 ) (
@@ -80,5 +80,18 @@ interface stream_channel #(
         input  t_valid,
         output t_ready
     );
+
+    //
+    // Useful packed structs for IPs to use
+    //
+    typedef struct packed {
+        logic [ID_WIDTH-1:0]   id;
+        logic [DEST_WIDTH-1:0] dest;
+        logic [DATA_WIDTH-1:0] data;
+        logic [STRB_WIDTH-1:0] strb;
+        logic [STRB_WIDTH-1:0] keep;
+        logic                  last;
+        logic [USER_WIDTH-1:0] user;
+    } pack_t;
 
 endinterface

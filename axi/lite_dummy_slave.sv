@@ -26,16 +26,12 @@
 
 // A simple dummy AXI-lite slave, for prototyping or building interconnects.
 module axi_lite_dummy_slave #(
-    parameter DATA_WIDTH                    = 64,
-    parameter logic [DATA_WIDTH-1:0] R_DATA = 0,
-    parameter axi_common::resp_t R_RESP     = axi_common::RESP_OKAY,
-    parameter axi_common::resp_t B_RESP     = axi_common::RESP_OKAY
+    parameter                    R_DATA = 0,
+    parameter axi_common::resp_t R_RESP = axi_common::RESP_OKAY,
+    parameter axi_common::resp_t B_RESP = axi_common::RESP_OKAY
 ) (
     axi_lite_channel.slave master
 );
-
-    // Static checks of parameters.
-    if (DATA_WIDTH != master.DATA_WIDTH) $fatal(1, "DATA_WIDTH mismatch");
 
     // Extract clk and rstn signals from interfaces
     logic clk;

@@ -29,8 +29,6 @@ import axi_common::*;
 // A buffer for AXI-Lite interface.
 module axi_lite_buf #(
     parameter DEPTH         = 1,
-    parameter ADDR_WIDTH    = 48,
-    parameter DATA_WIDTH    = 64
 ) (
     axi_lite_channel.slave  master,
     axi_lite_channel.master slave
@@ -39,19 +37,14 @@ module axi_lite_buf #(
     localparam STRB_WIDTH = DATA_WIDTH / 8;
 
     // Static checks of interface matching
-    if (ADDR_WIDTH != master.ADDR_WIDTH || ADDR_WIDTH != slave.ADDR_WIDTH ||
-        DATA_WIDTH != master.DATA_WIDTH || DATA_WIDTH != slave.DATA_WIDTH)
+    if (master.ADDR_WIDTH != slave.ADDR_WIDTH || master.DATA_WIDTH != slave.DATA_WIDTH)
         $fatal(1, "Parameter mismatch");
 
     //
     // AW channel
     //
 
-    typedef struct packed {
-        logic [ADDR_WIDTH-1:0] addr;
-        prot_t                 prot;
-    } ax_pack_t;
-
+    typedef master.ax_pack_t ax_pack_t;
     fifo #(
         .TYPE  (ax_pack_t),
         .DEPTH (DEPTH)
@@ -70,11 +63,7 @@ module axi_lite_buf #(
     // W channel
     //
 
-    typedef struct packed {
-        logic [DATA_WIDTH-1:0] data;
-        logic [STRB_WIDTH-1:0] strb;
-    } w_pack_t;
-
+    typedef master.w_pack_t w_pack_t;
     fifo #(
         .TYPE  (w_pack_t),
         .DEPTH (DEPTH)
@@ -129,11 +118,7 @@ module axi_lite_buf #(
     // R channel
     //
 
-    typedef struct packed {
-        logic [DATA_WIDTH-1:0] data;
-        resp_t                 resp;
-    } r_pack_t;
-
+    typedef master.r_pack_t r_pack_t;
     fifo #(
         .TYPE  (r_pack_t),
         .DEPTH (DEPTH)

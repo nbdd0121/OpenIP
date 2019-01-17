@@ -31,8 +31,8 @@ import axi_common::*;
 // RELAX_CHECK: The AXI specification requires DATA_WIDTH to be 32 or 64. Set RELAX_CHECK to 1 will relax this
 //     limitation to be same as AXI. This can be useful for some implementations.
 interface axi_lite_channel #(
-    parameter ADDR_WIDTH  = 48,
-    parameter DATA_WIDTH  = 64,
+    parameter ADDR_WIDTH,
+    parameter DATA_WIDTH,
     parameter RELAX_CHECK = 0
 ) (
     // Shared clock and reset signals.
@@ -134,5 +134,23 @@ interface axi_lite_channel #(
         output r_valid,
         input  r_ready
     );
+
+    //
+    // Useful packed structs for IPs to use
+    //
+    typedef struct packed {
+        logic [ADDR_WIDTH-1:0]    addr;
+        prot_t                    prot;
+    } ax_pack_t;
+
+    typedef struct packed {
+        logic [DATA_WIDTH-1:0]    data;
+        logic [STRB_WIDTH-1:0]    strb;
+    } w_pack_t;
+
+    typedef struct packed {
+        logic [DATA_WIDTH-1:0]   data;
+        resp_t                   resp;
+    } r_pack_t;
 
 endinterface

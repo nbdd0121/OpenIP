@@ -26,16 +26,13 @@
 
 // A bridge that connects an AXI-Lite master with an AXI slave. It requires address and data width to match and does
 // not perform width conversion.
-module axi_from_lite #(
-    DATA_WIDTH = 64
-) (
+module axi_from_lite (
     axi_lite_channel.slave master,
     axi_channel.master     slave
 );
 
     // Static checks of interface matching
-    if (master.ADDR_WIDTH != slave.ADDR_WIDTH ||
-        DATA_WIDTH != master.DATA_WIDTH || DATA_WIDTH != master.DATA_WIDTH)
+    if (master.ADDR_WIDTH != slave.ADDR_WIDTH || master.DATA_WIDTH != slave.DATA_WIDTH)
         $fatal(1, "ADDR_WIDTH and/or DATA_WIDTH of AXI and AXI-Lite port mismatch");
 
     // AXI-Lite does not support AXI IDs, so all accesses use a single fixed ID value.
@@ -44,7 +41,7 @@ module axi_from_lite #(
     // AXI-Lite has burst length defined to be 1.
     assign slave.aw_len    = 8'h0;
     // All accesses are defined to be of full width.
-    assign slave.aw_size   = $clog2(DATA_WIDTH / 8);
+    assign slave.aw_size   = $clog2(slave.DATA_WIDTH / 8);
     // This burst type has no meaning because burst length is 1, but we still prefer to fix it at INCR.
     assign slave.aw_burst  = axi_common::BURST_INCR;
     // All accesses are defined as normal access.
@@ -76,7 +73,7 @@ module axi_from_lite #(
     assign slave.ar_id     = '0;
     assign slave.ar_addr   = master.ar_addr;
     assign slave.ar_len    = 8'h0;
-    assign slave.ar_size   = $clog2(DATA_WIDTH / 8);
+    assign slave.ar_size   = $clog2(slave.DATA_WIDTH / 8);
     assign slave.ar_burst  = axi_common::BURST_INCR;
     assign slave.ar_lock   = 1'b0;
     assign slave.ar_cache  = 4'h0;

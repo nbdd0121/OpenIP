@@ -32,8 +32,6 @@ import axi_common::*;
 // HIGH_PERFORMANCE: If turned on, it can initiate a read/write request every cycle. Turn if off will reduce a few
 //     register usages. If can be turned off with marginal performance impact if transactions are in large bursts.
 module axi_to_lite #(
-    parameter ID_WIDTH         = 8,
-    parameter ADDR_WIDTH       = 48,
     parameter HIGH_PERFORMANCE = 1
 ) (
     axi_channel.slave       master,
@@ -41,9 +39,9 @@ module axi_to_lite #(
 );
 
     // Static checks of interface matching
-    if (ID_WIDTH != master.ID_WIDTH || master.DATA_WIDTH != slave.DATA_WIDTH ||
-        ADDR_WIDTH !=  master.ADDR_WIDTH || ADDR_WIDTH != slave.ADDR_WIDTH)
-        $fatal(1, "ID_WIDTH, ADDR_WIDTH and/or DATA_WIDTH mismatch");
+    if (master.DATA_WIDTH != slave.DATA_WIDTH ||
+        master.ADDR_WIDTH != slave.ADDR_WIDTH)
+        $fatal(1, "Parameter mismatch");
 
     // Extract clk and rstn signals from interfaces
     logic clk;
@@ -64,8 +62,8 @@ module axi_to_lite #(
 
     // Pack id and len into one single structure for use of FIFO.
     typedef struct packed {
-        logic [ID_WIDTH-1:0] id;
-        logic [7:0]          len;
+        logic [master.ID_WIDTH-1:0] id;
+        logic [7:0]                 len;
     } xact_t;
 
     //
@@ -114,16 +112,16 @@ module axi_to_lite #(
     //
 
     // Whether we are in the process of sending out bursts
-    logic                  ar_in_burst;
+    logic                         ar_in_burst;
     // The address to send to slave, and the next address.
-    logic [ADDR_WIDTH-1:0] ar_addr, ar_addr_next;
+    logic [master.ADDR_WIDTH-1:0] ar_addr, ar_addr_next;
     // Remaining burst length and its next value.
-    logic [7:0]            ar_len, ar_len_next;
+    logic [7:0]                   ar_len, ar_len_next;
     // The latched values from master.
-    prot_t                 ar_prot;
+    prot_t                        ar_prot;
     // When the FIFO to read response channel is full, we need to prepare to stall read address channel.
     // So we have this signal here which will be provided by the FIFO, and we can only proceed if it is asserted.
-    logic                  rfifo_ready;
+    logic                         rfifo_ready;
     // The following registers are latched for calculating the next address.
     // Variable _switched means its value either comes from aw channel (if ar_in_burst is low) or from register (if
     // ar_in_burst is high). They are necessary to calculate ar_addr_next. Even though ar_addr is necessary for
@@ -131,18 +129,18 @@ module axi_to_lite #(
     // Previous version of this code do not have these switched signals, but instead store previous address into
     // ar_addr and feed ar_addr_next directly into slave.ar_addr, but it seems that Quartus cannot perform flip-flop
     // migration in this case and causes timing issues.
-    logic [2:0]            ar_size, ar_size_switched;
-    burst_t                ar_burst, ar_burst_switched;
-    logic [3:0]            ar_wrap_len, ar_wrap_len_switched;
+    logic [2:0]                   ar_size, ar_size_switched;
+    burst_t                       ar_burst, ar_burst_switched;
+    logic [3:0]                   ar_wrap_len, ar_wrap_len_switched;
 
     assign ar_size_switched     = ar_in_burst ? ar_size : master.ar_size;
     assign ar_wrap_len_switched = ar_in_burst ? ar_wrap_len : master.ar_len[3:0];
     assign ar_burst_switched    = ar_in_burst ? ar_burst : master.ar_burst;
 
     // Calculate the next address and remaining length within the burst.
-    if (ADDR_WIDTH > 12)
+    if (master.ADDR_WIDTH > 12)
         assign ar_addr_next = {
-            slave.ar_addr[ADDR_WIDTH-1:12],
+            slave.ar_addr[master.ADDR_WIDTH-1:12],
             increment(slave.ar_addr[11:0], ar_size_switched, ar_wrap_len_switched, ar_burst_switched)
         };
     else
@@ -220,12 +218,12 @@ module axi_to_lite #(
     //
 
     // Signal about packed transaction information from/to FIFO
-    logic                rfifo_valid;
-    xact_t               rfifo_xact;
+    logic                       rfifo_valid;
+    xact_t                      rfifo_xact;
     // The state definition below is very similar to read address channel.
-    logic                r_in_burst;
-    logic [ID_WIDTH-1:0] r_id;
-    logic [7:0]          r_len, r_len_next;
+    logic                       r_in_burst;
+    logic [master.ID_WIDTH-1:0] r_id;
+    logic [7:0]                 r_len, r_len_next;
 
     assign r_len_next = r_len - 1;
 
@@ -282,22 +280,22 @@ module axi_to_lite #(
     // Write address chanel. This is identical to the read address channel, so comments are removed.
     //
 
-    logic                  aw_in_burst;
-    logic [ADDR_WIDTH-1:0] aw_addr, aw_addr_next;
-    logic [7:0]            aw_len, aw_len_next;
-    prot_t                 aw_prot;
-    logic                  wfifo_ready;
-    logic [2:0]            aw_size, aw_size_switched;
-    burst_t                aw_burst, aw_burst_switched;
-    logic [3:0]            aw_wrap_len, aw_wrap_len_switched;
+    logic                         aw_in_burst;
+    logic [master.ADDR_WIDTH-1:0] aw_addr, aw_addr_next;
+    logic [7:0]                   aw_len, aw_len_next;
+    prot_t                        aw_prot;
+    logic                         wfifo_ready;
+    logic [2:0]                   aw_size, aw_size_switched;
+    burst_t                       aw_burst, aw_burst_switched;
+    logic [3:0]                   aw_wrap_len, aw_wrap_len_switched;
 
     assign aw_size_switched     = aw_in_burst ? aw_size : master.aw_size;
     assign aw_wrap_len_switched = aw_in_burst ? aw_wrap_len : master.aw_len[3:0];
     assign aw_burst_switched    = aw_in_burst ? aw_burst : master.aw_burst;
 
-    if (ADDR_WIDTH > 12)
+    if (master.ADDR_WIDTH > 12)
         assign aw_addr_next = {
-            slave.aw_addr[ADDR_WIDTH-1:12],
+            slave.aw_addr[master.ADDR_WIDTH-1:12],
             increment(slave.aw_addr[11:0], aw_size_switched, aw_wrap_len_switched, aw_burst_switched)
         };
     else
@@ -367,14 +365,14 @@ module axi_to_lite #(
     //
 
     /// Signal about packed transaction information from/to FIFO
-    logic                wfifo_valid;
-    xact_t               wfifo_xact;
+    logic                       wfifo_valid;
+    xact_t                      wfifo_xact;
     // The state definition below is very similar to read response channel.
-    logic                b_in_burst;
-    logic [ID_WIDTH-1:0] b_id;
-    logic [7:0]          b_len, b_len_next;
+    logic                       b_in_burst;
+    logic [master.ID_WIDTH-1:0] b_id;
+    logic [7:0]                 b_len, b_len_next;
     // The current response to be returned and its next state.
-    resp_t               b_resp, b_resp_next;
+    resp_t                      b_resp, b_resp_next;
 
     assign b_len_next  = b_len - 1;
     // If b_resp is already an error response, retain it, otherwise use the new response.

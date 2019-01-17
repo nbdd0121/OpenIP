@@ -30,8 +30,6 @@
 //     read/write request every cycle). Set this parameter to 0 will turn off high performance mode, reducing a few
 //     register usages.
 module axi_bram_ctrl #(
-    parameter ID_WIDTH         = 8,
-    parameter ADDR_WIDTH       = 48,
     parameter DATA_WIDTH       = 64,
     parameter BRAM_ADDR_WIDTH  = 16,
     parameter HIGH_PERFORMANCE = 1
@@ -46,7 +44,7 @@ module axi_bram_ctrl #(
 );
 
     axi_lite_channel #(
-        .ADDR_WIDTH  (ADDR_WIDTH),
+        .ADDR_WIDTH  (master.ADDR_WIDTH),
         .DATA_WIDTH  (DATA_WIDTH),
         .RELAX_CHECK (1'b1)
     ) channel (
@@ -55,8 +53,6 @@ module axi_bram_ctrl #(
     );
 
     axi_to_lite #(
-        .ID_WIDTH         (ID_WIDTH),
-        .ADDR_WIDTH       (ADDR_WIDTH),
         .HIGH_PERFORMANCE (HIGH_PERFORMANCE)
     ) bridge (
         .master (master),

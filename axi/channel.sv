@@ -28,15 +28,15 @@ import axi_common::*;
 
 // Interface that defines an AXI channel.
 interface axi_channel #(
-    ID_WIDTH = 8,
-    ADDR_WIDTH = 48,
-    DATA_WIDTH = 64,
+    parameter ID_WIDTH,
+    parameter ADDR_WIDTH,
+    parameter DATA_WIDTH,
     // Due to limitation of SystemVerilog, minimum of *_USER_WIDTH is 1. If they are unused, let optimiser trim them.
-    AW_USER_WIDTH = 1,
-    W_USER_WIDTH = 1,
-    B_USER_WIDTH = 1,
-    AR_USER_WIDTH = 1,
-    R_USER_WIDTH = 1
+    parameter AW_USER_WIDTH = 1,
+    parameter W_USER_WIDTH = 1,
+    parameter B_USER_WIDTH = 1,
+    parameter AR_USER_WIDTH = 1,
+    parameter R_USER_WIDTH = 1
 ) (
     // Shared clock and reset signals.
     input logic clk,
