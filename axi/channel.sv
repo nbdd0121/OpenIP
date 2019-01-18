@@ -235,7 +235,7 @@ interface axi_channel #(
     typedef struct packed {
         logic [ID_WIDTH-1:0]      id;
         resp_t                    resp;
-        logic [ID_WIDTH-1:0]      user;
+        logic [B_USER_WIDTH-1:0]      user;
     } b_pack_t;
 
     typedef struct packed {
