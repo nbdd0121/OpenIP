@@ -277,77 +277,12 @@ module axi_mux #(
 
     axi_mux_raw #(.MASTER_NUM(MASTER_NUM)) mux (master, slave_buf);
 
-    assign slave.aw_id     = slave_buf.aw_id;
-    assign slave.aw_addr   = slave_buf.aw_addr;
-    assign slave.aw_len    = slave_buf.aw_len;
-    assign slave.aw_size   = slave_buf.aw_size;
-    assign slave.aw_burst  = slave_buf.aw_burst;
-    assign slave.aw_lock   = slave_buf.aw_lock;
-    assign slave.aw_cache  = slave_buf.aw_cache;
-    assign slave.aw_prot   = slave_buf.aw_prot;
-    assign slave.aw_qos    = slave_buf.aw_qos;
-    assign slave.aw_region = slave_buf.aw_region;
-    assign slave.aw_user   = slave_buf.aw_user;
-    assign slave.aw_valid  = slave_buf.aw_valid;
-    assign slave_buf.aw_ready = slave.aw_ready;
-
-    assign slave.w_data    = slave_buf.w_data;
-    assign slave.w_strb    = slave_buf.w_strb;
-    assign slave.w_last    = slave_buf.w_last;
-    assign slave.w_user    = slave_buf.w_user;
-    assign slave.w_valid   = slave_buf.w_valid;
-    assign slave_buf.w_ready  = slave.w_ready;
-
-    assign slave.ar_id     = slave_buf.ar_id;
-    assign slave.ar_addr   = slave_buf.ar_addr;
-    assign slave.ar_len    = slave_buf.ar_len;
-    assign slave.ar_size   = slave_buf.ar_size;
-    assign slave.ar_burst  = slave_buf.ar_burst;
-    assign slave.ar_lock   = slave_buf.ar_lock;
-    assign slave.ar_cache  = slave_buf.ar_cache;
-    assign slave.ar_prot   = slave_buf.ar_prot;
-    assign slave.ar_qos    = slave_buf.ar_qos;
-    assign slave.ar_region = slave_buf.ar_region;
-    assign slave.ar_user   = slave_buf.ar_user;
-    assign slave.ar_valid  = slave_buf.ar_valid;
-    assign slave_buf.ar_ready = slave.ar_ready;
-
-    //
-    // B channel
-    //
-
-    typedef slave.b_pack_t b_pack_t;
-    regslice #(
-        .TYPE    (b_pack_t),
-        .FORWARD (1'b0)
-    ) bfifo (
-        .clk     (slave.clk),
-        .rstn    (slave.rstn),
-        .w_valid (slave.b_valid),
-        .w_ready (slave.b_ready),
-        .w_data  (b_pack_t'{slave.b_id, slave.b_resp, slave.b_user}),
-        .r_valid (slave_buf.b_valid),
-        .r_ready (slave_buf.b_ready),
-        .r_data  ({slave_buf.b_id, slave_buf.b_resp, slave_buf.b_user})
-    );
-
-    //
-    // R channel
-    //
-
-    typedef slave.r_pack_t r_pack_t;
-    regslice #(
-        .TYPE    (r_pack_t),
-        .FORWARD (1'b0)
-    ) rfifo (
-        .clk     (slave.clk),
-        .rstn    (slave.rstn),
-        .w_valid (slave.r_valid),
-        .w_ready (slave.r_ready),
-        .w_data  (r_pack_t'{slave.r_id, slave.r_data, slave.r_resp, slave.r_last, slave.r_user}),
-        .r_valid (slave_buf.r_valid),
-        .r_ready (slave_buf.r_ready),
-        .r_data  ({slave_buf.r_id, slave_buf.r_data, slave_buf.r_resp, slave_buf.r_last, slave_buf.r_user})
-    );
+    axi_regslice #(
+        .AW_MODE (0),
+        . W_MODE (0),
+        . B_MODE (2),
+        .AR_MODE (0),
+        . R_MODE (2)
+    ) slice (slave_buf, slave);
 
 endmodule
