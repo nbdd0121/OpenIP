@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, Gary Guo
+ * Copyright (c) 2018-2019, Gary Guo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -188,18 +188,21 @@ module axi_demux_raw #(
     // Whether we should increase active_cnt or decrease it.
     logic [2**master.ID_WIDTH-1:0] w_cnt_incr;
     logic [2**master.ID_WIDTH-1:0] w_cnt_decr;
-    for (genvar i = 0; i < 2**master.ID_WIDTH; i++) begin
-        assign w_cnt_decr[i] = master.b_id == i && master.b_valid && master.b_ready;
-        assign w_cnt_incr[i] = master.aw_id == i && master.aw_valid && master.aw_ready;
+    always_comb begin
+        for (int i = 0; i < 2**master.ID_WIDTH; i++) begin
+            w_cnt_decr[i] = slave.b_id == i && slave.b_valid && slave.b_ready;
+            w_cnt_incr[i] = slave.aw_id == i && slave.aw_valid && slave.aw_ready;
+        end
     end
 
     // Actually update the mappings
-    for (genvar i = 0; i < 2**master.ID_WIDTH; i++)
-        always_ff @(posedge clk or negedge rstn)
-            if (!rstn) begin
+    always_ff @(posedge clk or negedge rstn)
+        if (!rstn) begin
+            for (int i = 0; i < 2**master.ID_WIDTH; i++)
                 write_map[i] <= mapping_t'('0);
-            end
-            else begin
+        end
+        else begin
+            for (int i = 0; i < 2**master.ID_WIDTH; i++) begin
                 if (w_cnt_incr[i]) begin
                     write_map[i].active_slave <= aw_match_bin;
                     if (!w_cnt_decr) write_map[i].active_cnt <= write_map[i].active_cnt + 1;
@@ -208,6 +211,7 @@ module axi_demux_raw #(
                     write_map[i].active_cnt <= write_map[i].active_cnt - 1;
                 end
             end
+        end
 
     // When we have decided a slave we need to make sure we keep AW connected until the handshake
     // happens, and W connected to the slave until we see w_last. They need separate lock signals
@@ -323,17 +327,20 @@ module axi_demux_raw #(
 
     logic [2**master.ID_WIDTH-1:0] r_cnt_incr;
     logic [2**master.ID_WIDTH-1:0] r_cnt_decr;
-    for (genvar i = 0; i < 2**master.ID_WIDTH; i++) begin
-        assign r_cnt_decr[i] = master.r_id == i && master.r_valid && master.r_ready && master.r_last;
-        assign r_cnt_incr[i] = master.ar_id == i && master.ar_valid && master.ar_ready;
+    always_comb begin
+        for (int i = 0; i < 2**master.ID_WIDTH; i++) begin
+            r_cnt_decr[i] = slave.r_id == i && slave.r_valid && slave.r_ready && slave.r_last;
+            r_cnt_incr[i] = slave.ar_id == i && slave.ar_valid && slave.ar_ready;
+        end
     end
 
-    for (genvar i = 0; i < 2**master.ID_WIDTH; i++)
-        always_ff @(posedge clk or negedge rstn)
-            if (!rstn) begin
+    always_ff @(posedge clk or negedge rstn)
+        if (!rstn) begin
+            for (int i = 0; i < 2**master.ID_WIDTH; i++)
                 read_map[i] <= mapping_t'('0);
-            end
-            else begin
+        end
+        else begin
+            for (int i = 0; i < 2**master.ID_WIDTH; i++) begin
                 if (r_cnt_incr[i]) begin
                     read_map[i].active_slave <= ar_match_bin;
                     if (!r_cnt_decr) read_map[i].active_cnt <= read_map[i].active_cnt + 1;
@@ -342,6 +349,7 @@ module axi_demux_raw #(
                     read_map[i].active_cnt <= read_map[i].active_cnt - 1;
                 end
             end
+        end
 
     // When we have decided a slave we need to make sure we keep AR connected until the handshake
     // happens.

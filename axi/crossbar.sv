@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, Gary Guo
+ * Copyright (c) 2018-2019, Gary Guo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
