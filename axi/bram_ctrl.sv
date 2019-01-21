@@ -30,8 +30,8 @@
 //     read/write request every cycle). Set this parameter to 0 will turn off high performance mode, reducing a few
 //     register usages.
 module axi_bram_ctrl #(
-    parameter DATA_WIDTH       = 64,
-    parameter BRAM_ADDR_WIDTH  = 16,
+    parameter DATA_WIDTH     ,
+    parameter BRAM_ADDR_WIDTH,
     parameter HIGH_PERFORMANCE = 1
 ) (
     axi_channel.slave               master,

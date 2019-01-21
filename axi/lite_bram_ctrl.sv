@@ -26,8 +26,8 @@
 
 // A component that converts an AXI-lite interface to a BRAM interface.
 module axi_lite_bram_ctrl #(
-    parameter DATA_WIDTH       = 64,
-    parameter BRAM_ADDR_WIDTH  = 16
+    parameter DATA_WIDTH     ,
+    parameter BRAM_ADDR_WIDTH
 ) (
     axi_lite_channel.slave       master,
 
