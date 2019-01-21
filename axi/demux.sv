@@ -190,8 +190,8 @@ module axi_demux_raw #(
     logic [2**master.ID_WIDTH-1:0] w_cnt_decr;
     always_comb begin
         for (int i = 0; i < 2**master.ID_WIDTH; i++) begin
-            w_cnt_decr[i] = slave.b_id == i && slave.b_valid && slave.b_ready;
-            w_cnt_incr[i] = slave.aw_id == i && slave.aw_valid && slave.aw_ready;
+            w_cnt_decr[i] = master.b_id == i && master.b_valid && master.b_ready;
+            w_cnt_incr[i] = master.aw_id == i && master.aw_valid && master.aw_ready;
         end
     end
 
@@ -329,8 +329,8 @@ module axi_demux_raw #(
     logic [2**master.ID_WIDTH-1:0] r_cnt_decr;
     always_comb begin
         for (int i = 0; i < 2**master.ID_WIDTH; i++) begin
-            r_cnt_decr[i] = slave.r_id == i && slave.r_valid && slave.r_ready && slave.r_last;
-            r_cnt_incr[i] = slave.ar_id == i && slave.ar_valid && slave.ar_ready;
+            r_cnt_decr[i] = master.r_id == i && master.r_valid && master.r_ready && master.r_last;
+            r_cnt_incr[i] = master.ar_id == i && master.ar_valid && master.ar_ready;
         end
     end
 
