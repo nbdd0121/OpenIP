@@ -33,10 +33,9 @@ module axi_join (
     // Static checks of interface matching.
     // Normally parameters should match exactly, but the following operations are legal:
     // * Widen ID_WIDTH
-    // * Widen ADDR_WIDTH
+    // * Widen or narrow ADDR_WIDTH (this would be useful for connecting componenets after demux)
     // * Widen DATA_WIDTH
     if (master.ID_WIDTH > slave.ID_WIDTH ||
-        master.ADDR_WIDTH > slave.ADDR_WIDTH ||
         master.DATA_WIDTH > slave.DATA_WIDTH ||
         master.AW_USER_WIDTH != slave.AW_USER_WIDTH ||
         master.W_USER_WIDTH != slave.W_USER_WIDTH ||
