@@ -54,17 +54,15 @@ module axi_mux_raw #(
             slave.ID_WIDTH, master[0].ID_WIDTH, MASTER_WIDTH
         );
 
-    // For each master interface perform a static check
-    for (genvar i = 0; i < MASTER_NUM; i++)
-        if (master[i].ID_WIDTH != master[0].ID_WIDTH ||
-            master[i].DATA_WIDTH != slave.DATA_WIDTH ||
-            master[i].ADDR_WIDTH != slave.ADDR_WIDTH ||
-            master[i].AW_USER_WIDTH != slave.AW_USER_WIDTH ||
-            master[i].W_USER_WIDTH != slave.W_USER_WIDTH ||
-            master[i].B_USER_WIDTH != slave.B_USER_WIDTH ||
-            master[i].AR_USER_WIDTH != slave.AR_USER_WIDTH ||
-            master[i].R_USER_WIDTH != slave.R_USER_WIDTH)
-            $fatal(1, "Parameter mismatch");
+    // Static checks of interface matching
+    if (master[0].DATA_WIDTH != slave.DATA_WIDTH ||
+        master[0].ADDR_WIDTH != slave.ADDR_WIDTH ||
+        master[0].AW_USER_WIDTH != slave.AW_USER_WIDTH ||
+        master[0].W_USER_WIDTH != slave.W_USER_WIDTH ||
+        master[0].B_USER_WIDTH != slave.B_USER_WIDTH ||
+        master[0].AR_USER_WIDTH != slave.AR_USER_WIDTH ||
+        master[0].R_USER_WIDTH != slave.R_USER_WIDTH)
+        $fatal(1, "Parameter mismatch");
 
     // Extract clk and rstn signals from interfaces
     logic clk;

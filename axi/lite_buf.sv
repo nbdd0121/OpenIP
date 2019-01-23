@@ -28,13 +28,11 @@ import axi_common::*;
 
 // A buffer for AXI-Lite interface.
 module axi_lite_buf #(
-    parameter DEPTH         = 1,
+    parameter DEPTH         = 1
 ) (
     axi_lite_channel.slave  master,
     axi_lite_channel.master slave
 );
-
-    localparam STRB_WIDTH = DATA_WIDTH / 8;
 
     // Static checks of interface matching
     if (master.ADDR_WIDTH != slave.ADDR_WIDTH || master.DATA_WIDTH != slave.DATA_WIDTH)

@@ -50,21 +50,17 @@ module axi_demux_raw #(
 
     localparam SLAVE_WIDTH = $clog2(SLAVE_NUM);
 
-    // Perform overall static checks
-    if (master.ADDR_WIDTH != ADDR_WIDTH)
+    // Static checks of interface matching
+    if (master.ADDR_WIDTH != ADDR_WIDTH ||
+        master.ID_WIDTH != slave[0].ID_WIDTH ||
+        master.DATA_WIDTH != slave[0].DATA_WIDTH ||
+        master.ADDR_WIDTH != slave[0].ADDR_WIDTH ||
+        master.AW_USER_WIDTH != slave[0].AW_USER_WIDTH ||
+        master.W_USER_WIDTH != slave[0].W_USER_WIDTH ||
+        master.B_USER_WIDTH != slave[0].B_USER_WIDTH ||
+        master.AR_USER_WIDTH != slave[0].AR_USER_WIDTH ||
+        master.R_USER_WIDTH != slave[0].R_USER_WIDTH)
         $fatal(1, "Parameter mismatch");
-
-    // For each master interface perform a static check
-    for (genvar i = 0; i < SLAVE_NUM; i++)
-        if (master.ID_WIDTH != slave[i].ID_WIDTH ||
-            master.DATA_WIDTH != slave[i].DATA_WIDTH ||
-            master.ADDR_WIDTH != slave[i].ADDR_WIDTH ||
-            master.AW_USER_WIDTH != slave[i].AW_USER_WIDTH ||
-            master.W_USER_WIDTH != slave[i].W_USER_WIDTH ||
-            master.B_USER_WIDTH != slave[i].B_USER_WIDTH ||
-            master.AR_USER_WIDTH != slave[i].AR_USER_WIDTH ||
-            master.R_USER_WIDTH != slave[i].R_USER_WIDTH)
-            $fatal(1, "Parameter mismatch");
 
     // Extract clk and rstn signals from interfaces
     logic clk;
