@@ -119,11 +119,9 @@ module axi_id_downsizer_raw #(
     // Whether we should increase active_cnt or decrease it.
     logic [2**slave.ID_WIDTH-1:0] w_cnt_incr;
     logic [2**slave.ID_WIDTH-1:0] w_cnt_decr;
-    always_comb begin
-        for (int i = 0; i < 2**slave.ID_WIDTH; i++) begin
-            w_cnt_decr[i] = slave.b_id == i && slave.b_valid && slave.b_ready;
-            w_cnt_incr[i] = slave.aw_id == i && slave.aw_valid && slave.aw_ready;
-        end
+    for (genvar i = 0; i < 2**slave.ID_WIDTH; i++) begin
+        assign w_cnt_decr[i] = slave.b_id == i && slave.b_valid && slave.b_ready;
+        assign w_cnt_incr[i] = slave.aw_id == i && slave.aw_valid && slave.aw_ready;
     end
 
     // Actually update the mappings
@@ -196,11 +194,9 @@ module axi_id_downsizer_raw #(
 
     logic [2**slave.ID_WIDTH-1:0] r_cnt_incr;
     logic [2**slave.ID_WIDTH-1:0] r_cnt_decr;
-    always_comb begin
-        for (int i = 0; i < 2**slave.ID_WIDTH; i++) begin
-            r_cnt_decr[i] = slave.r_id == i && slave.r_valid && slave.r_ready && slave.r_last;
-            r_cnt_incr[i] = slave.ar_id == i && slave.ar_valid && slave.ar_ready;
-        end
+    for (genvar i = 0; i < 2**slave.ID_WIDTH; i++) begin
+        assign r_cnt_decr[i] = slave.r_id == i && slave.r_valid && slave.r_ready && slave.r_last;
+        assign r_cnt_incr[i] = slave.ar_id == i && slave.ar_valid && slave.ar_ready;
     end
 
     always_ff @(posedge clk or negedge rstn)

@@ -149,24 +149,35 @@ module axi_mux_raw #(
             end
         end
 
-    // Connect AW channle of slave.
-    assign slave.aw_id     = master_aw[aw_selected].id    ;
-    assign slave.aw_addr   = master_aw[aw_selected].addr  ;
-    assign slave.aw_len    = master_aw[aw_selected].len   ;
-    assign slave.aw_size   = master_aw[aw_selected].size  ;
-    assign slave.aw_burst  = master_aw[aw_selected].burst ;
-    assign slave.aw_lock   = master_aw[aw_selected].lock  ;
-    assign slave.aw_cache  = master_aw[aw_selected].cache ;
-    assign slave.aw_prot   = master_aw[aw_selected].prot  ;
-    assign slave.aw_qos    = master_aw[aw_selected].qos   ;
-    assign slave.aw_region = master_aw[aw_selected].region;
-    assign slave.aw_user   = master_aw[aw_selected].user  ;
+    // Connect AW channel of slave.
+    // A note on this coding pattern:
+    // Orginally the code here writes:
+    //   assign slave.aw_id     = master_aw[aw_selected].id    ;
+    // However QuestaSim incorrectly assumes that this means slave.aw_id is only sensitive to
+    // aw_selected but not sensitive to master_aw which causes issues in simulation. Separating
+    // this out to two assignments however corrected this issue. Until the bug is fixed we will
+    // need to stick to this pattern.
+    aw_pack_t master_aw_selected;
+    assign master_aw_selected = master_aw[aw_selected];
+    assign slave.aw_id     = master_aw_selected.id    ;
+    assign slave.aw_addr   = master_aw_selected.addr  ;
+    assign slave.aw_len    = master_aw_selected.len   ;
+    assign slave.aw_size   = master_aw_selected.size  ;
+    assign slave.aw_burst  = master_aw_selected.burst ;
+    assign slave.aw_lock   = master_aw_selected.lock  ;
+    assign slave.aw_cache  = master_aw_selected.cache ;
+    assign slave.aw_prot   = master_aw_selected.prot  ;
+    assign slave.aw_qos    = master_aw_selected.qos   ;
+    assign slave.aw_region = master_aw_selected.region;
+    assign slave.aw_user   = master_aw_selected.user  ;
     assign slave.aw_valid  = aw_locked && master_aw_valid[aw_selected];
 
-    assign slave.w_data  = master_w[aw_selected].data ;
-    assign slave.w_strb  = master_w[aw_selected].strb ;
-    assign slave.w_last  = master_w[aw_selected].last ;
-    assign slave.w_user  = master_w[aw_selected].user ;
+    w_pack_t master_w_selected;
+    assign master_w_selected = master_w[aw_selected];
+    assign slave.w_data  = master_w_selected.data ;
+    assign slave.w_strb  = master_w_selected.strb ;
+    assign slave.w_last  = master_w_selected.last ;
+    assign slave.w_user  = master_w_selected.user ;
     assign slave.w_valid = w_locked && master_w_valid[aw_selected];
 
     for (genvar i = 0; i < MASTER_NUM; i++) begin: aw
@@ -222,17 +233,19 @@ module axi_mux_raw #(
             end
         end
 
-    assign slave.ar_id     = master_ar[ar_selected].id    ;
-    assign slave.ar_addr   = master_ar[ar_selected].addr  ;
-    assign slave.ar_len    = master_ar[ar_selected].len   ;
-    assign slave.ar_size   = master_ar[ar_selected].size  ;
-    assign slave.ar_burst  = master_ar[ar_selected].burst ;
-    assign slave.ar_lock   = master_ar[ar_selected].lock  ;
-    assign slave.ar_cache  = master_ar[ar_selected].cache ;
-    assign slave.ar_prot   = master_ar[ar_selected].prot  ;
-    assign slave.ar_qos    = master_ar[ar_selected].qos   ;
-    assign slave.ar_region = master_ar[ar_selected].region;
-    assign slave.ar_user   = master_ar[ar_selected].user  ;
+    ar_pack_t master_ar_selected;
+    assign master_ar_selected = master_ar[ar_selected];
+    assign slave.ar_id     = master_ar_selected.id    ;
+    assign slave.ar_addr   = master_ar_selected.addr  ;
+    assign slave.ar_len    = master_ar_selected.len   ;
+    assign slave.ar_size   = master_ar_selected.size  ;
+    assign slave.ar_burst  = master_ar_selected.burst ;
+    assign slave.ar_lock   = master_ar_selected.lock  ;
+    assign slave.ar_cache  = master_ar_selected.cache ;
+    assign slave.ar_prot   = master_ar_selected.prot  ;
+    assign slave.ar_qos    = master_ar_selected.qos   ;
+    assign slave.ar_region = master_ar_selected.region;
+    assign slave.ar_user   = master_ar_selected.user  ;
     assign slave.ar_valid  = ar_locked && master_ar_valid[ar_selected];
 
     for (genvar i = 0; i < MASTER_NUM; i++) begin: ar

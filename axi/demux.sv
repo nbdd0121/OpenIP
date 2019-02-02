@@ -184,11 +184,15 @@ module axi_demux_raw #(
     // Whether we should increase active_cnt or decrease it.
     logic [2**master.ID_WIDTH-1:0] w_cnt_incr;
     logic [2**master.ID_WIDTH-1:0] w_cnt_decr;
-    always_comb begin
-        for (int i = 0; i < 2**master.ID_WIDTH; i++) begin
-            w_cnt_decr[i] = master.b_id == i && master.b_valid && master.b_ready;
-            w_cnt_incr[i] = master.aw_id == i && master.aw_valid && master.aw_ready;
-        end
+
+    // A note on this coding pattern:
+    // Orginally the code here uses always_comb with a for loop here.
+    // However QuestaSim will handle signals within interfaces incorrectly if they're placed in
+    // always_comb block, possibly causing glitches in simulation. We need to avoid reading
+    // interface signals from always_comb code until the issue is resolved.
+    for (genvar i = 0; i < 2**master.ID_WIDTH; i++) begin
+        assign w_cnt_decr[i] = master.b_id == i && master.b_valid && master.b_ready;
+        assign w_cnt_incr[i] = master.aw_id == i && master.aw_valid && master.aw_ready;
     end
 
     // Actually update the mappings
@@ -323,11 +327,9 @@ module axi_demux_raw #(
 
     logic [2**master.ID_WIDTH-1:0] r_cnt_incr;
     logic [2**master.ID_WIDTH-1:0] r_cnt_decr;
-    always_comb begin
-        for (int i = 0; i < 2**master.ID_WIDTH; i++) begin
-            r_cnt_decr[i] = master.r_id == i && master.r_valid && master.r_ready && master.r_last;
-            r_cnt_incr[i] = master.ar_id == i && master.ar_valid && master.ar_ready;
-        end
+    for (genvar i = 0; i < 2**master.ID_WIDTH; i++) begin
+        assign r_cnt_decr[i] = master.r_id == i && master.r_valid && master.r_ready && master.r_last;
+        assign r_cnt_incr[i] = master.ar_id == i && master.ar_valid && master.ar_ready;
     end
 
     always_ff @(posedge clk or negedge rstn)
