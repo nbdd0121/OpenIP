@@ -74,7 +74,7 @@ module fifo #(
             empty_next = writeptr_next == readptr_next;
             // FIFO is full if they are DEPTH distance apart.
             full_next = writeptr_next[ADDR_WIDTH] != readptr_next[ADDR_WIDTH] &&
-                writeptr[ADDR_WIDTH-1:0] == readptr_next[ADDR_WIDTH-1:0];
+                writeptr_next[ADDR_WIDTH-1:0] == readptr_next[ADDR_WIDTH-1:0];
         end
 
         always_ff @(posedge clk or negedge rstn)
