@@ -37,7 +37,17 @@ module axi_regslice #(
     axi_channel.slave  master,
     axi_channel.master slave
 );
-
+  
+`define ID_WIDTH (master.ID_WIDTH)
+`define ADDR_WIDTH (master.ADDR_WIDTH)
+`define DATA_WIDTH (master.DATA_WIDTH)
+`define AW_USER_WIDTH (master.AW_USER_WIDTH)
+`define W_USER_WIDTH (master.W_USER_WIDTH)
+`define B_USER_WIDTH (master.B_USER_WIDTH)
+`define AR_USER_WIDTH (master.AR_USER_WIDTH)
+`define R_USER_WIDTH (master.R_USER_WIDTH)
+`include "typedef.vh"
+   
     // Static checks of interface matching
     if (master.ID_WIDTH != slave.ID_WIDTH ||
         master.ADDR_WIDTH != slave.ADDR_WIDTH ||
@@ -53,7 +63,7 @@ module axi_regslice #(
     // AW channel
     //
 
-    typedef master.aw_pack_t aw_pack_t;
+//    typedef types.aw_pack_t aw_pack_t;
     regslice #(
         .TYPE             (aw_pack_t),
         .FORWARD          ((AW_MODE & 1) != 0),
@@ -80,7 +90,7 @@ module axi_regslice #(
     // W channel
     //
 
-    typedef master.w_pack_t w_pack_t;
+//    typedef master.w_pack_t w_pack_t;
     regslice #(
         .TYPE             (w_pack_t),
         .FORWARD          ((W_MODE & 1) != 0),
@@ -101,7 +111,7 @@ module axi_regslice #(
     // B channel
     //
 
-    typedef master.b_pack_t b_pack_t;
+//    typedef master.b_pack_t b_pack_t;
     regslice #(
         .TYPE             (b_pack_t),
         .FORWARD          ((B_MODE & 1) != 0),
@@ -122,7 +132,7 @@ module axi_regslice #(
     // AR channel
     //
 
-    typedef master.ar_pack_t ar_pack_t;
+//    typedef master.ar_pack_t ar_pack_t;
     regslice #(
         .TYPE             (ar_pack_t),
         .FORWARD          ((AR_MODE & 1) != 0),
@@ -149,7 +159,7 @@ module axi_regslice #(
     // R channel
     //
 
-    typedef master.r_pack_t r_pack_t;
+//    typedef master.r_pack_t r_pack_t;
     regslice #(
         .TYPE             (r_pack_t),
         .FORWARD          ((R_MODE & 1) != 0),

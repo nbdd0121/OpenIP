@@ -29,7 +29,7 @@
 // !w_ready as full and !r_valid as empty.
 //
 // FALL_THROUGH: set to 1 for first-word fall-through.
-module fifo #(
+module general_fifo #(
     parameter DATA_WIDTH   = 1,
     parameter type TYPE    = logic [DATA_WIDTH-1:0],
     parameter DEPTH        = 1,

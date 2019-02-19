@@ -50,5 +50,4 @@ package axi_common;
         RESP_SLVERR = 2'b10,
         RESP_DECERR = 2'b11
     } resp_t;
-
 endpackage

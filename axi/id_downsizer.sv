@@ -241,6 +241,10 @@ module axi_id_downsizer_raw #(
 endmodule
 
 module axi_id_downsizer #(
+    parameter ID_WIDTH,
+    parameter SLAVE_ID_WIDTH,
+    parameter ADDR_WIDTH,
+    parameter DATA_WIDTH,
     parameter ACTIVE_CNT_WIDTH = 4
 ) (
     axi_channel.slave  master,
@@ -248,18 +252,18 @@ module axi_id_downsizer #(
 );
 
     axi_channel #(
-        .ID_WIDTH   (master.ID_WIDTH),
-        .ADDR_WIDTH (master.ADDR_WIDTH),
-        .DATA_WIDTH (master.DATA_WIDTH)
+        .ID_WIDTH   (ID_WIDTH),
+        .ADDR_WIDTH (ADDR_WIDTH),
+        .DATA_WIDTH (DATA_WIDTH)
     ) master_buf (
         master.clk,
         master.rstn
     );
 
     axi_channel #(
-        .ID_WIDTH   (slave.ID_WIDTH),
-        .ADDR_WIDTH (slave.ADDR_WIDTH),
-        .DATA_WIDTH (slave.DATA_WIDTH)
+        .ID_WIDTH   (SLAVE_ID_WIDTH),
+        .ADDR_WIDTH (ADDR_WIDTH),
+        .DATA_WIDTH (DATA_WIDTH)
     ) slave_buf (
         slave.clk,
         slave.rstn

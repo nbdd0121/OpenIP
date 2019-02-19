@@ -47,8 +47,17 @@ module axi_buf #(
     // AW channel
     //
 
-    typedef master.aw_pack_t aw_pack_t;
-    fifo #(
+`define ID_WIDTH (master.ID_WIDTH)
+`define ADDR_WIDTH (master.ADDR_WIDTH)
+`define DATA_WIDTH (master.DATA_WIDTH)
+`define AW_USER_WIDTH (master.AW_USER_WIDTH)
+`define W_USER_WIDTH (master.W_USER_WIDTH)
+`define B_USER_WIDTH (master.B_USER_WIDTH)
+`define AR_USER_WIDTH (master.AR_USER_WIDTH)
+`define R_USER_WIDTH (master.R_USER_WIDTH)
+`include "typedef.vh"
+//    typedef master.aw_pack_t aw_pack_t;
+    general_fifo #(
         .TYPE  (aw_pack_t),
         .DEPTH (DEPTH)
     ) awfifo (
@@ -72,8 +81,8 @@ module axi_buf #(
     // W channel
     //
 
-    typedef master.w_pack_t w_pack_t;
-    fifo #(
+  //  typedef master.w_pack_t w_pack_t;
+    general_fifo #(
         .TYPE  (w_pack_t),
         .DEPTH (DEPTH)
     ) wfifo (
@@ -91,8 +100,8 @@ module axi_buf #(
     // B channel
     //
 
-    typedef master.b_pack_t b_pack_t;
-    fifo #(
+//    typedef master.b_pack_t b_pack_t;
+    general_fifo #(
         .TYPE  (b_pack_t),
         .DEPTH (DEPTH)
     ) bfifo (
@@ -110,8 +119,8 @@ module axi_buf #(
     // AR channel
     //
 
-    typedef master.ar_pack_t ar_pack_t;
-    fifo #(
+//    typedef master.ar_pack_t ar_pack_t;
+    general_fifo #(
         .TYPE  (ar_pack_t),
         .DEPTH (DEPTH)
     ) arfifo (
@@ -135,8 +144,8 @@ module axi_buf #(
     // R channel
     //
 
-    typedef master.r_pack_t r_pack_t;
-    fifo #(
+//    typedef master.r_pack_t r_pack_t;
+    general_fifo #(
         .TYPE  (r_pack_t),
         .DEPTH (DEPTH)
     ) rfifo (
