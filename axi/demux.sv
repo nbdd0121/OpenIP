@@ -33,10 +33,10 @@ module axi_demux #(
     parameter SLAVE_ID_WIDTH,
     parameter ADDR_WIDTH,
     parameter DATA_WIDTH,
-    parameter ACTIVE_CNT_WIDTH = 4,
+    parameter ACTIVE_CNT_WIDTH = 4
 ) (
     axi_channel.slave  master,
-    axi_channel.master slave [SLAVE_NUM]
+    axi_channel.master slave [SLAVE_NUM],
     logic [SLAVE_NUM-1:0][ADDR_WIDTH-1:0] BASE,
     logic [SLAVE_NUM-1:0][ADDR_WIDTH-1:0] MASK
 );
