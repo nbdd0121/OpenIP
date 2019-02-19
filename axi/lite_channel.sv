@@ -135,22 +135,4 @@ interface axi_lite_channel #(
         input  r_ready
     );
 
-    //
-    // Useful packed structs for IPs to use
-    //
-    typedef struct packed {
-        logic [ADDR_WIDTH-1:0]    addr;
-        prot_t                    prot;
-    } ax_pack_t;
-
-    typedef struct packed {
-        logic [DATA_WIDTH-1:0]    data;
-        logic [STRB_WIDTH-1:0]    strb;
-    } w_pack_t;
-
-    typedef struct packed {
-        logic [DATA_WIDTH-1:0]   data;
-        resp_t                   resp;
-    } r_pack_t;
-
 endinterface

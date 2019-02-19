@@ -42,8 +42,17 @@ module axi_lite_buf #(
     // AW channel
     //
 
-    typedef master.ax_pack_t ax_pack_t;
-    fifo #(
+`define ID_WIDTH (master.ID_WIDTH)
+`define ADDR_WIDTH (master.ADDR_WIDTH)
+`define DATA_WIDTH (master.DATA_WIDTH)
+`define AW_USER_WIDTH (master.AW_USER_WIDTH)
+`define W_USER_WIDTH (master.W_USER_WIDTH)
+`define B_USER_WIDTH (master.B_USER_WIDTH)
+`define AR_USER_WIDTH (master.AR_USER_WIDTH)
+`define R_USER_WIDTH (master.R_USER_WIDTH)
+`include "typedef.vh"
+//    typedef master.ax_pack_t ax_pack_t;
+    general_fifo #(
         .TYPE  (ax_pack_t),
         .DEPTH (DEPTH)
     ) awfifo (
@@ -61,8 +70,8 @@ module axi_lite_buf #(
     // W channel
     //
 
-    typedef master.w_pack_t w_pack_t;
-    fifo #(
+//    typedef master.w_pack_t w_pack_t;
+    general_fifo #(
         .TYPE  (w_pack_t),
         .DEPTH (DEPTH)
     ) wfifo (
@@ -70,7 +79,7 @@ module axi_lite_buf #(
         .rstn    (master.rstn),
         .w_valid (master.w_valid),
         .w_ready (master.w_ready),
-        .w_data  (w_pack_t'{master.w_data, master.w_strb}),
+        .w_data  (lw_pack_t'{master.w_data, master.w_strb}),
         .r_valid (slave.w_valid),
         .r_ready (slave.w_ready),
         .r_data  ({slave.w_data, slave.w_strb})
@@ -80,7 +89,7 @@ module axi_lite_buf #(
     // B channel
     //
 
-    fifo #(
+    general_fifo #(
         .TYPE  (resp_t),
         .DEPTH (DEPTH)
     ) bfifo (
@@ -98,7 +107,7 @@ module axi_lite_buf #(
     // AR channel
     //
 
-    fifo #(
+    general_fifo #(
         .TYPE  (ax_pack_t),
         .DEPTH (DEPTH)
     ) arfifo (
@@ -116,8 +125,8 @@ module axi_lite_buf #(
     // R channel
     //
 
-    typedef master.r_pack_t r_pack_t;
-    fifo #(
+//    typedef master.r_pack_t r_pack_t;
+    general_fifo #(
         .TYPE  (r_pack_t),
         .DEPTH (DEPTH)
     ) rfifo (
@@ -125,7 +134,7 @@ module axi_lite_buf #(
         .rstn    (master.rstn),
         .w_valid (slave.r_valid),
         .w_ready (slave.r_ready),
-        .w_data  (r_pack_t'{slave.r_data, slave.r_resp}),
+        .w_data  (lr_pack_t'{slave.r_data, slave.r_resp}),
         .r_valid (master.r_valid),
         .r_ready (master.r_ready),
         .r_data  ({master.r_data, master.r_resp})

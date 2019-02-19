@@ -94,11 +94,11 @@ module axi_to_lite #(
         wrap_mask = wrap_len << size;
 
         unique case (burst)
-            BURST_FIXED:
+            axi_common::BURST_FIXED:
                 increment = addr;
-            BURST_INCR:
+            axi_common::BURST_INCR:
                 increment = (addr &~ incr_mask) + shift;
-            BURST_WRAP:
+            axi_common::BURST_WRAP:
                 // Basically this restricts the addition to be within the mask and keeps things outside mask fixed.
                 increment = ((addr + shift) & wrap_mask) | (addr &~ wrap_mask);
             default:
