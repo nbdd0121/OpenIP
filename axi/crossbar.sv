@@ -70,7 +70,7 @@ module axi_crossbar #(
             . B_MODE (0),
             .AR_MODE (0),
             . R_MODE (1)
-        ) master_slice (master[i], master_buf);
+        ) master_slice (.master(master[i]), .slave(master_buf));
     end
 
     for (genvar i = 0; i < SLAVE_NUM; i++) begin: mux
@@ -79,7 +79,7 @@ module axi_crossbar #(
             .ADDR_WIDTH (ADDR_WIDTH),
             .DATA_WIDTH (DATA_WIDTH)
         ) channels[MASTER_NUM] (
-            slave[i].clk, slave[i].rstn
+            .clk(slave[i].clk), .rstn(slave[i].rstn)
         );
 
         axi_channel #(
@@ -87,10 +87,10 @@ module axi_crossbar #(
             .ADDR_WIDTH (ADDR_WIDTH),
             .DATA_WIDTH (DATA_WIDTH)
         ) slave_buf(
-            slave[i].clk, slave[i].rstn
+            .clk(slave[i].clk), .rstn(slave[i].rstn)
         );
 
-        axi_mux_raw #(.MASTER_NUM (MASTER_NUM)) mux (channels, slave_buf);
+        axi_mux_raw #(.MASTER_NUM (MASTER_NUM)) mux (.master(channels), .slave(slave_buf));
 
         axi_regslice #(
             .AW_MODE (0),
@@ -98,10 +98,10 @@ module axi_crossbar #(
             . B_MODE (2),
             .AR_MODE (0),
             . R_MODE (2)
-        ) slice (slave_buf, slave[i]);
+        ) slice (.master(slave_buf), .slave(slave[i]));
 
         for (genvar j = 0; j < MASTER_NUM; j++) begin
-            axi_xbar_join joiner(demux[j].channels[i], channels[j]);
+            axi_xbar_join joiner(.master(demux[j].channels[i]), .slave(channels[j]));
         end
     end
 
