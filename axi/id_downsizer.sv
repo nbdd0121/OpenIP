@@ -134,7 +134,7 @@ module axi_id_downsizer_raw #(
             for (int i = 0; i < 2**slave.ID_WIDTH; i++) begin
                 if (w_cnt_incr[i]) begin
                     write_map[i].active_id <= master.aw_id[master.ID_WIDTH-1:slave.ID_WIDTH];
-                    if (!w_cnt_decr) write_map[i].active_cnt <= write_map[i].active_cnt + 1;
+                    if (!w_cnt_decr[i]) write_map[i].active_cnt <= write_map[i].active_cnt + 1;
                 end
                 else if (w_cnt_decr[i]) begin
                     write_map[i].active_cnt <= write_map[i].active_cnt - 1;
@@ -206,11 +206,11 @@ module axi_id_downsizer_raw #(
         end
         else begin
             for (int i = 0; i < 2**slave.ID_WIDTH; i++) begin
-                if (r_cnt_incr) begin
+                if (r_cnt_incr[i]) begin
                     read_map[i].active_id <= master.ar_id[master.ID_WIDTH-1:slave.ID_WIDTH];
-                    if (!r_cnt_decr) read_map[i].active_cnt <= read_map[i].active_cnt + 1;
+                    if (!r_cnt_decr[i]) read_map[i].active_cnt <= read_map[i].active_cnt + 1;
                 end
-                else if (r_cnt_decr) begin
+                else if (r_cnt_decr[i]) begin
                     read_map[i].active_cnt <= read_map[i].active_cnt - 1;
                 end
             end

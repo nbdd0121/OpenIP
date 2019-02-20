@@ -205,7 +205,7 @@ module axi_demux_raw #(
             for (int i = 0; i < 2**master.ID_WIDTH; i++) begin
                 if (w_cnt_incr[i]) begin
                     write_map[i].active_slave <= aw_match_bin;
-                    if (!w_cnt_decr) write_map[i].active_cnt <= write_map[i].active_cnt + 1;
+                    if (!w_cnt_decr[i]) write_map[i].active_cnt <= write_map[i].active_cnt + 1;
                 end
                 else if (w_cnt_decr[i]) begin
                     write_map[i].active_cnt <= write_map[i].active_cnt - 1;
@@ -341,7 +341,7 @@ module axi_demux_raw #(
             for (int i = 0; i < 2**master.ID_WIDTH; i++) begin
                 if (r_cnt_incr[i]) begin
                     read_map[i].active_slave <= ar_match_bin;
-                    if (!r_cnt_decr) read_map[i].active_cnt <= read_map[i].active_cnt + 1;
+                    if (!r_cnt_decr[i]) read_map[i].active_cnt <= read_map[i].active_cnt + 1;
                 end
                 else if (r_cnt_decr[i]) begin
                     read_map[i].active_cnt <= read_map[i].active_cnt - 1;
