@@ -27,10 +27,8 @@
 // A single clock, simple dual-port RAM.
 // When port A and port B has address conflict, the new value is read out from A.
 //
-// Note that while this module is useful for simulation, it may not be supported by all devices
-// and unsupported tools may replace it with a read-first BRAM, causing a mismatch. You would
-// want to use simple_wr_alt.sv instead in this case. Currently the known device supporting this
-// MLAB BRAM on Altera FPGAs.
+// This module uses extra logic to provide conflict resolution, and therefore is more generally
+// usable.
 module simple_wr_ram #(
     parameter ADDR_WIDTH      = 16,
     parameter DATA_WIDTH      = 64,
@@ -47,14 +45,23 @@ module simple_wr_ram #(
 );
 
     logic [DATA_WIDTH-1:0] mem [0:2**ADDR_WIDTH-1];
-    logic [ADDR_WIDTH-1:0] raddr;
+    logic [DATA_WIDTH-1:0] rddata;
+
+    logic latched;
+    logic [DATA_WIDTH-1:0] latch;
 
     always_ff @(posedge clk) begin
+        rddata <= mem[a_addr];
         if (b_we) mem[b_addr] <= b_wrdata;
-        raddr <= a_addr;
+
+        latched <= 1'b0;
+        if (b_we && a_addr == b_addr) begin
+            latched <= 1'b1;
+            latch <= b_wrdata;
+        end
     end
 
-    assign a_rddata = mem[raddr];
+    assign a_rddata = latched ? latch : rddata;
 
     if (DEFAULT_CONTENT) initial $readmemh(DEFAULT_CONTENT, mem);
 
