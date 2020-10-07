@@ -134,14 +134,14 @@ module axi_demux_raw #(
     logic [SLAVE_NUM-1:0]   r_arb_grant;
     logic [SLAVE_WIDTH-1:0] r_arb_grant_bin;
 
-    round_robin_arbiter #(.WIDTH(SLAVE_NUM)) b_arb (
+    openip_round_robin_arbiter #(.WIDTH(SLAVE_NUM)) b_arb (
         .clk     (clk),
         .rstn    (rstn),
         .enable  (b_arb_enable),
         .request (slave_b_valid),
         .grant   (b_arb_grant)
     );
-    round_robin_arbiter #(.WIDTH(SLAVE_NUM)) r_arb (
+    openip_round_robin_arbiter #(.WIDTH(SLAVE_NUM)) r_arb (
         .clk     (clk),
         .rstn    (rstn),
         .enable  (r_arb_enable),

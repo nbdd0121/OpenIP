@@ -25,7 +25,7 @@
  */
 
 // A round-robin arbiter.
-module round_robin_arbiter #(
+module openip_round_robin_arbiter #(
     parameter WIDTH = -1
 ) (
     input  logic             clk,
@@ -52,10 +52,10 @@ module round_robin_arbiter #(
     assign masked_request = {~(last_grant - 1), 1'b0} & request;
 
     logic [WIDTH-1:0] masked_grant;
-    priority_arbiter #(.WIDTH(WIDTH)) masked_arbiter (masked_request, masked_grant);
+    openip_priority_arbiter #(.WIDTH(WIDTH)) masked_arbiter (masked_request, masked_grant);
 
     logic [WIDTH-1:0] unmasked_grant;
-    priority_arbiter #(.WIDTH(WIDTH)) unmasked_arbiter (request, unmasked_grant);
+    openip_priority_arbiter #(.WIDTH(WIDTH)) unmasked_arbiter (request, unmasked_grant);
 
     // Use masked_grant if it's not zero. Otherwise use unmasked_grant.
     assign grant = masked_request != 0 ? masked_grant : unmasked_grant;

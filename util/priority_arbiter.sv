@@ -25,7 +25,7 @@
  */
 
 // A simple priority arbiter. Less significant bits take precedence over more significant bits.
-module priority_arbiter #(
+module openip_priority_arbiter #(
     parameter WIDTH = -1
 ) (
     input  logic [WIDTH-1:0] request,

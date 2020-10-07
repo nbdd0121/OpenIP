@@ -116,7 +116,7 @@ module axi_mux_raw #(
     logic                    w_locked;
     logic [MASTER_WIDTH-1:0] aw_selected;
 
-    round_robin_arbiter #(.WIDTH(MASTER_NUM)) aw_arb (
+    openip_round_robin_arbiter #(.WIDTH(MASTER_NUM)) aw_arb (
         .clk     (clk),
         .rstn    (rstn),
         .enable  (!aw_locked && !w_locked),
@@ -206,7 +206,7 @@ module axi_mux_raw #(
     logic                    ar_locked;
     logic [MASTER_WIDTH-1:0] ar_selected;
 
-    round_robin_arbiter #(.WIDTH(MASTER_NUM)) ar_arb (
+    openip_round_robin_arbiter #(.WIDTH(MASTER_NUM)) ar_arb (
         .clk     (clk),
         .rstn    (rstn),
         .enable  (!ar_locked),
